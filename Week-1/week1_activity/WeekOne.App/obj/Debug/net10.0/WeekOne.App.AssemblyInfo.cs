@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WeekOne.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2bbf2abe4d32e771e60ad75d9c9c64183d469f21")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f6dc30d1267af6a9f7afdc1d35bba9dfed77bca")]
 [assembly: System.Reflection.AssemblyProductAttribute("WeekOne.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WeekOne.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
