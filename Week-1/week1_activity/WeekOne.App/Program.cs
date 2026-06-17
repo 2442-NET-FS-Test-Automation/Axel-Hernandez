@@ -13,7 +13,11 @@ public class Program
         {
             //welcome message to menu- pending to add
             // -- add sumary of final rental - total bill, days, car
+            // -- not to rent unavailable cars
+            // -- make sure car is available - otheriwse throw exception
+            //  not to rent below the minimum rental period
             
+
             Commands.PrintMenu();
             int choice = int.Parse(Console.ReadLine());   // naive: may throw on bad input — fine for now
             switch (choice)
