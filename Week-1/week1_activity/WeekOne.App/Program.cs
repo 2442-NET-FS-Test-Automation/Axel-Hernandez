@@ -11,6 +11,9 @@ public class Program
         var running = true;
         while (running)
         {
+            //welcome message to menu- pending to add
+            // -- add sumary of final rental - total bill, days, car
+            
             Commands.PrintMenu();
             int choice = int.Parse(Console.ReadLine());   // naive: may throw on bad input — fine for now
             switch (choice)

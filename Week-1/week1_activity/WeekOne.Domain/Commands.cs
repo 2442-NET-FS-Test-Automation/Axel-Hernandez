@@ -5,8 +5,8 @@ public class Commands
 {
     public static void PrintMenu()
     {
-        Console.WriteLine("1: Print inventory");
-        Console.WriteLine("2: Add car to inventory");
+        Console.WriteLine("1: Print inventory"); //better format in console
+        Console.WriteLine("2: Add car to inventory"); //ask for expected type input (probably add into expetions)
         Console.WriteLine("3: Rent a car");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
@@ -17,6 +17,8 @@ public class Commands
     public static void PrintInventory()
     {
         Console.WriteLine("1: Printing inventory:");
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine("--------------------------------");
         Console.WriteLine("--------------------------------");
 
         foreach (var car in Inventory.CarsInStock)
