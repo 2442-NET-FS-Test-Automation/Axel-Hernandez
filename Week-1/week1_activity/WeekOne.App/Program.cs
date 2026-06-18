@@ -22,6 +22,8 @@ public class Program
                 case 1: Commands.PrintInventory(); break;
                 case 2: Commands.AddCar(); break;
                 case 3: Commands.RentCar(rentados); break;
+                case 4: Commands.UnRent(rentados); break;
+                case 5: Commands.RentedCarsInfo(rentados); break;
                 case 0: running = false; break;
             }
         }
