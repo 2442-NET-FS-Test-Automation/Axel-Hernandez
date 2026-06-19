@@ -10,6 +10,7 @@ public class Commands
         Console.WriteLine("3: Rent a car"); 
         Console.WriteLine("4: Cancel a rent"); 
         Console.WriteLine("5: List of your rented cars");
+        Console.WriteLine("8: Waiting List");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
     }
@@ -41,11 +42,15 @@ public class Commands
 
         foreach (var car in Inventory.CarsInStock)
         {
-            if(car.IsAvailable)
-            {
-                Console.WriteLine($"{car.Id}) {car.ToString()}");
-                Console.WriteLine("--------------------------------");
-            }     
+
+            //Commenting this, we need to see false items, to add to waiting lis....
+            // if(car.IsAvailable)
+            // {
+            //     Console.WriteLine($"{car.Id}) {car.ToString()}");
+            //     Console.WriteLine("--------------------------------");
+            // }     
+            Console.WriteLine($"{car.Id}) {car.ToString()}");
+            Console.WriteLine("--------------------------------");
         }
         Console.WriteLine("--------------------------------");
     }
@@ -97,6 +102,12 @@ public class Commands
 
             //choice
             int choice = int.Parse(Console.ReadLine());
+
+            //evaluate first, if choice isAvailable only, nothing else
+            Console.WriteLine("-------------  Testing changes Axel -------------------");
+            Console.WriteLine($"testing choice: {choice}");
+
+
             if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && Inventory.CarsInStock[choice - 1].IsAvailable)
             {
                 var selectedCar = Inventory.CarsInStock[choice - 1];
@@ -119,6 +130,45 @@ public class Commands
             else if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && !Inventory.CarsInStock[choice - 1].IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
+                
+                bool addingToWaitingList = true;
+
+                //Check if on waiting list
+                if(Inventory.waitingList.Contains(Inventory.CarsInStock[choice - 1]))
+                {
+                    Console.WriteLine("Car already in waiting list");
+                    addingToWaitingList = false;
+                    return;
+                }
+
+
+
+                while(addingToWaitingList)
+                {
+                    Console.WriteLine("Would you like to add this car to the waiting list? (y/n)");
+                    string answer = Console.ReadLine();
+                    if(answer == "y")
+                    {
+                        Console.WriteLine("Adding to waiting list...");
+
+                        
+
+                        Inventory.waitingList.Add(Inventory.CarsInStock[choice - 1]);
+
+                        Console.WriteLine("----- Car Added to Waiting List -----");
+
+
+                        addingToWaitingList = false;
+                        return;
+
+                    }
+                    else if(answer == "n")
+                    {
+                        Console.WriteLine("Not adding to waiting list...");
+                        addingToWaitingList = false;
+                        return;
+                    }
+                }
             }
             else if(choice == 0)
             {
@@ -202,6 +252,92 @@ public class Commands
             else
             {
                 Console.WriteLine($"Not a valid id, retry");
+            }
+        }
+    }
+
+
+    //waiting list
+
+    public static void ReorderWaitingList()
+    {
+        if (Inventory.waitingList.Count < 2)
+        {
+            Console.WriteLine("Need at least 2 cars in the waiting list to reorder.");
+            return;
+        }
+
+        Console.WriteLine("Current order:");
+        for (int i = 0; i < Inventory.waitingList.Count; i++)
+        {
+            var car = Inventory.waitingList[i];
+            Console.WriteLine($"{i + 1}) {car.Brand} {car.Model}");
+        }
+
+        Console.WriteLine("Which item do you want to move? (position number)");
+        int from = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("Move it to which position?");
+        int to = int.Parse(Console.ReadLine());
+
+        if (Inventory.TryMoveWaitingListItem(from, to))
+        {
+            Console.WriteLine("Updated order:");
+            for (int i = 0; i < Inventory.waitingList.Count; i++)
+            {
+                var car = Inventory.waitingList[i];
+                Console.WriteLine($"{i + 1}) {car.Brand} {car.Model}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Invalid position. No changes made.");
+        }
+    }
+
+    public static void WaitingListInfo()
+    {
+        bool inProgress = true;
+
+        while (inProgress)
+        {
+            Console.WriteLine("------ Waiting list -------");
+
+            if (Inventory.waitingList.Count == 0)
+            {
+                Console.WriteLine("No cars in waiting list");
+            }
+            else
+            {
+                for (int i = 0; i < Inventory.waitingList.Count; i++)
+                {
+                    var car = Inventory.waitingList[i];
+                    Console.WriteLine($"{i + 1}) {car.Brand} {car.Model}");
+                }
+            }
+
+            // Submenu — INSIDE the loop, AFTER the list
+            Console.WriteLine();
+            Console.WriteLine("1: Change order");
+            Console.WriteLine("0: Back to main menu");
+            Console.WriteLine("Enter your choice:");
+
+            int choice = int.Parse(Console.ReadLine());  // ← read HERE
+
+            switch (choice)
+            {
+                case 1:
+                    ReorderWaitingList();  // when ready
+                    Console.WriteLine("Change order — implement next");
+                    break;
+
+                case 0:
+                    inProgress = false;  // ← only way out
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid option.");
+                    break;
             }
         }
     }

@@ -11,7 +11,7 @@ public class Program
         bool running = true;
         List<(CarRental coche, int dias)> rentedCars = new(); //Lista de coches rentador por el usuario. Dupla para tener coche y dias
         
-
+    
         Console.WriteLine("Welcome!");
         while (running)
         {            
@@ -24,6 +24,7 @@ public class Program
                 case 3: Commands.RentCar(rentedCars); break;
                 case 4: Commands.UnRent(rentedCars); break;
                 case 5: Commands.RentedCarsInfo(rentedCars); break;
+                case 8: Commands.WaitingListInfo(); break;
                 case 0: running = false; break;
             }
         }
