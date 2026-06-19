@@ -19,21 +19,29 @@ public class Program
         while (running)
         {            
             Commands.PrintMenu();
-            int choice = int.Parse(Console.ReadLine());   // naive: may throw on bad input — fine for now
+            int choice;
+            try
+            {
+                choice = int.Parse(Console.ReadLine());
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception: "+ex.Message);
+                choice = 10;
+            }
+            
             
             switch (choice)
             {
+                case 0: running = false; break;
                 case 1: Commands.PrintInventory(); break;
                 case 2: Commands.AddCar(); break;
                 case 3: coche = Commands.DeleteCar(); break;
                 case 4: Commands.RentCar(rentedCars); break;
                 case 5: UnRentedCars = Commands.UnRent(rentedCars); break;
                 case 6: Commands.RentedCarsInfo(rentedCars); break;
-                case 7: Commands.UndoLastAction(lastAction, rentedCars, coche, UnRentedCars); break;
-                
-                //UndoLastAction, var 
-                case 0: running = false; break;
-                //case 10, perform actions
+                case 7: Commands.UndoLastAction(lastAction, rentedCars, coche, UnRentedCars); lastAction = 0; break;
+
+                default: Console.WriteLine("Not a valid option"); break;
             }
             if(possibleAction.Contains(choice)) //Si es de las acciones que se pueden deshacer se guarda
                 lastAction = choice;

@@ -102,25 +102,30 @@ public class Commands
     {
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Add a new Car");
-        Console.WriteLine("Enter brand of the car:");
-        string brand = Console.ReadLine();
+        try
+        {
+            Console.WriteLine("Enter brand of the car:");
+            string brand = Console.ReadLine();
+            
+            Console.WriteLine("Enter model of the car:");
+            string model = Console.ReadLine();
+
+            Console.WriteLine("Enter daily cost of the car:");
+            int dayCost = int.Parse(Console.ReadLine());
         
-        Console.WriteLine("Enter model of the car:");
-        string model = Console.ReadLine();
+            Console.WriteLine("Enter minimum rental period of the car:");
+            int rentalPeriod = int.Parse(Console.ReadLine());
 
-        Console.WriteLine("Enter daily cost of the car:");
-        int dayCost = int.Parse(Console.ReadLine());
-    
-        Console.WriteLine("Enter minimum rental period of the car:");
-        int rentalPeriod = int.Parse(Console.ReadLine());
+            Console.WriteLine("Enter if the car is available (true/false):");
+            bool isAvailable = bool.Parse(Console.ReadLine());
 
-        Console.WriteLine("Enter if the car is available (true/false):");
-        bool isAvailable = bool.Parse(Console.ReadLine());
-
-        //Create nre car with data gathered
-        CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
-        Inventory.CarsInStock.Add(newCar);
-
+            //Create nre car with data gathered
+            CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
+            Inventory.CarsInStock.Add(newCar);
+        }catch(Exception ex)
+        {
+            Console.WriteLine("Error with an input: "+ex.Message);
+        }
 
         Console.WriteLine("2: Adding car to inventory:");
         Console.WriteLine("--------------------------------");
@@ -149,7 +154,15 @@ public class Commands
         Commands.PrintInventory();
         Console.WriteLine("Which car do you wish to delete? Type id or 0 to exit");
 
-        int carToBeDeleted = Convert.ToInt32(Console.ReadLine());
+        int carToBeDeleted = 0;
+        try
+        {
+            carToBeDeleted = Convert.ToInt32(Console.ReadLine());
+        }catch(Exception ex)
+        {
+            Console.WriteLine("Error : "+ex.Message);
+        }
+        
 
         CarRental coche = Inventory.GetCarById(carToBeDeleted);
 
@@ -172,7 +185,15 @@ public class Commands
     //Function to delete a car via undo action
     public static void UndoDeleteCar()
     {
-        Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+        if(Inventory.CarsInStock.Count > 0)
+        {
+            Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+        }
+        else
+        {
+            Console.WriteLine("No car to be deleted");
+        }
+        
       
     }
     
@@ -193,11 +214,21 @@ public class Commands
             //Select number of days
 
             //choice
-            int choice = int.Parse(Console.ReadLine());
-            if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && Inventory.CarsInStock[choice - 1].IsAvailable)
+            int choice = 0;
+            CarRental selectedCar = null;
+            try
             {
-                var selectedCar = Inventory.CarsInStock[choice - 1];
-            
+                choice = int.Parse(Console.ReadLine());
+                selectedCar = Inventory.GetCarById(choice);
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception : "+ex.Message);
+                choice = 0;
+            }
+
+            //CarRental coche = Inventory.GetCarById(carToBeDeleted);
+            if(selectedCar is not null && selectedCar.IsAvailable)
+            {            
                 selectedCar.ChangeStatus(false);
                 Console.WriteLine($"Car selected for rental: {selectedCar.ToString()}");
 
@@ -213,7 +244,7 @@ public class Commands
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
             }
-            else if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && !Inventory.CarsInStock[choice - 1].IsAvailable)
+            else if(selectedCar is not null && !selectedCar.IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
             }
@@ -236,8 +267,16 @@ public class Commands
     public static void UndoUnRentCar(List<(CarRental coche, int dias)> rentedCars, List<(CarRental coche, int dias)> ToRentCar)
     {
         //Se añade el coche que se quito previamente
-        ToRentCar[0].coche.ChangeStatus(false);
-        rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+        if(ToRentCar.Count > 0)
+        {
+            ToRentCar[0].coche.ChangeStatus(false);
+            rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+        }
+        else
+        {
+            Console.WriteLine("No car to rent again");
+        }
+        
     }
 
 
@@ -291,9 +330,18 @@ public class Commands
             }
             Console.WriteLine("Which car do you want to eliminate?");
 
-            num = Convert.ToInt32(Console.ReadLine());
+            try
+            {
+                num = Convert.ToInt32(Console.ReadLine());
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception: "+ex.Message);
+                num = 0;
+            }
+            
             CarRental coche = null;
             int dias = 0; 
+
             foreach(var item in rentedCars)
             {
                 if(item.coche.Id == num)
@@ -321,9 +369,17 @@ public class Commands
     //Funcion para eliminar la ultima renta via undo action
    public static void UndoUnRent(List<(CarRental coche, int dias)> rentedCars)
     {
-        CarRental coche = rentedCars[rentedCars.Count-1].coche;
-        coche.ChangeStatus(true);
-        rentedCars.RemoveAt(rentedCars.Count-1);
+        if(rentedCars.Count > 0)
+        {
+            CarRental coche = rentedCars[rentedCars.Count-1].coche;
+            coche.ChangeStatus(true);
+            rentedCars.RemoveAt(rentedCars.Count-1);
+        }
+        else
+        {
+            Console.WriteLine("No car to delete from rent");
+        }
+        
     }
     public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
     List<(CarRental coche, int dias)> deletedRentedCar)
