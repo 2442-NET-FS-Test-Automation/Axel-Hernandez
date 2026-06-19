@@ -10,11 +10,10 @@ public class Program
 
         bool running = true;
         List<(CarRental coche, int dias)> rentedCars = new(); //Lista de coches rentador por el usuario. Dupla para tener coche y dias
+        List<(CarRental coche, int dias)> UnRentedCars = new();
         int lastAction = 0;
         int[] possibleAction = {2,3,4,5};
-        CarRental coche = new CarRental("","",0,0,true);
-        List<(CarRental coche, int dias)> UnRentedCars = new();
-        
+        CarRental coche = null;
         //list<int> acciones;
         Console.WriteLine("Welcome!");
         while (running)
