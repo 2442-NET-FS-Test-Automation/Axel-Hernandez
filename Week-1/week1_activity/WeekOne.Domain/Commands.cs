@@ -10,7 +10,6 @@ public class Commands
         Console.WriteLine("3: Rent a car"); 
         Console.WriteLine("4: Cancel a rent"); 
         Console.WriteLine("5: List of your rented cars");
-        Console.WriteLine("9: View cars position in parking lot (grid)");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
     }
@@ -51,7 +50,6 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
-
     public static void AddCar()
     {
         Console.WriteLine("--------------------------------");
@@ -80,6 +78,56 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
+    //Add car via undo
+    public static void UndoAddCar(CarRental coche)
+    {
+        if(coche is not null)
+        {
+            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
+            Inventory.CarsInStock.Add(newCar);
+        }
+        else
+        {
+            Console.WriteLine("No car to be added");
+        }
+        
+    }
+
+    //Function to delete an existing car
+    public static CarRental DeleteCar()
+    {
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine("Delete an existing car");
+        Commands.PrintInventory();
+        Console.WriteLine("Which car do you wish to delete? Type id or 0 to exit");
+
+        int carToBeDeleted = Convert.ToInt32(Console.ReadLine());
+
+        CarRental coche = Inventory.GetCarById(carToBeDeleted);
+
+        if(carToBeDeleted > 0 && carToBeDeleted <= Inventory.CarsInStock.Count)
+        {
+            Inventory.CarsInStock.Remove(coche);
+        }
+        else if(carToBeDeleted == 0)
+        {
+            Console.WriteLine("No car deleted"); 
+        }
+        else
+        {
+            Console.WriteLine("No car with sush id");
+        }
+
+        return coche;
+    }
+    
+    //Function to delete a car via undo action
+    public static void UndoDeleteCar()
+    {
+        Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+      
+    }
+    
     //Renew car rental period
     public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
     {
@@ -136,6 +184,15 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
+    //Undo unrent car
+    public static void UndoUnRentCar(List<(CarRental coche, int dias)> rentedCars, List<(CarRental coche, int dias)> ToRentCar)
+    {
+        //Se añade el coche que se quito previamente
+        ToRentCar[0].coche.ChangeStatus(false);
+        rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+    }
+
+
     //Funcion para listar los coches rentados y calcular total
     public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {
@@ -165,11 +222,14 @@ public class Commands
     }
    
    //Funcion para eliminar una renta
-   public static void UnRent(List<(CarRental coche, int dias)> rentedCars)
+   public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Cancel a rent");
+
+        List<(CarRental coche, int dias)> unRentedCars = new();
+
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You dont have any rented car");
@@ -193,6 +253,7 @@ public class Commands
                     coche = item.coche;
                     dias = item.dias;
                     item.coche.ChangeStatus(true);
+                    unRentedCars.Add((coche, dias));
                 }
             }
 
@@ -205,39 +266,6 @@ public class Commands
                 Console.WriteLine($"Not a valid id, retry");
             }
         }
-    }
-
-    //Displays the parking grid (Lot x Row)
-    public static void PrintGrid()
-    {
-        var grid = ParkingGrid.Calculate(Inventory.CarsInStock.Count);
-
-        if (grid.Lots == 0)
-        {
-            Console.WriteLine("There are no cars in the inventory.");
-            Console.WriteLine("--------------------------------");
-            return;
-        }
-
-        // Builds an empty matrix [row, col] and fills it with each car's Id
-        string[,] cells = new string[grid.Rows, grid.Lots];
-        for (int r = 0; r < grid.Rows; r++)
-            for (int c = 0; c < grid.Lots; c++)
-                cells[r, c] = "---";
-
-        foreach (var car in Inventory.CarsInStock)
-        {
-            var (row, col) = grid.PositionFor(car.Id);
-            cells[row, col] = $"#{car.Id}";
-        }
- 
-        Console.WriteLine("Position detail:");
-        foreach (var car in Inventory.CarsInStock)
-        {
-            var (row, col) = grid.PositionFor(car.Id);
-            Console.WriteLine($"  Car #{car.Id} ({car.Brand} {car.Model}) -> [Row {row}, Lot {col}]");
-        }
-        Console.WriteLine("--------------------------------");
     }
 
 }
