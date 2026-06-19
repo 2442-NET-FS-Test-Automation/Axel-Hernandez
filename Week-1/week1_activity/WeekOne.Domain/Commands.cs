@@ -166,7 +166,7 @@ public class Commands
 
         CarRental coche = Inventory.GetCarById(carToBeDeleted);
 
-        if(carToBeDeleted > 0 && carToBeDeleted <= Inventory.CarsInStock.Count)
+        if(coche is not null)
         {
             Inventory.CarsInStock.Remove(coche);
         }
