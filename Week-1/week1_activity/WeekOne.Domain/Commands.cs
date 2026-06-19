@@ -1,3 +1,5 @@
+using Serilog;
+
 namespace WeekOne.Domain;
 
 public class Commands
@@ -14,26 +16,8 @@ public class Commands
         Console.WriteLine("7: Undo Last Action");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
+        Log.Information("Printed menu successfully");
     }
-
-    //Print initial inventory
-    //public static void PrintInventory()
-    //{
-        // Console.WriteLine("--------------------------------");
-        // Console.WriteLine("1: Printing inventory:");
-        // Console.WriteLine("--------------------------------");
-        // Console.WriteLine("--------------------------------");
-
-        // foreach (var car in Inventory.CarsInStock)
-        // {
-            
-        //     Console.WriteLine($"{car.Id}) {car.ToString()}");
-        //     Console.WriteLine("--------------------------------");
-
-        // }
-        // Console.WriteLine("--------------------------------");
-        //Print initial inventory as a compact grid (Lot x Row), one car per cell
-        //}
     
     public static void PrintInventory()
     {
@@ -78,6 +62,7 @@ public class Commands
         }
 
         Console.WriteLine(border);
+        Log.Information("Printed Inventory successfully");
     }
 
     public static void PrintAvailableInventory()
@@ -96,6 +81,7 @@ public class Commands
             }     
         }
         Console.WriteLine("--------------------------------");
+        Log.Information("Printed Available Inventory successfully");
     }
 
     public static void AddCar()
@@ -122,9 +108,11 @@ public class Commands
             //Create nre car with data gathered
             CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
             Inventory.CarsInStock.Add(newCar);
+            Log.Information("Car added successfully");
         }catch(Exception ex)
         {
             Console.WriteLine("Error with an input: "+ex.Message);
+            Log.Error("Error on AddCar "+ex.Message);
         }
 
         Console.WriteLine("2: Adding car to inventory:");
@@ -138,10 +126,12 @@ public class Commands
         {
             CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
             Inventory.CarsInStock.Add(newCar);
+            Log.Information("Add Car via UndoAddCar");
         }
         else
         {
             Console.WriteLine("No car to be added");
+            Log.Warning("No car to be added via UndoAddCar");
         }
         
     }
@@ -161,6 +151,7 @@ public class Commands
         }catch(Exception ex)
         {
             Console.WriteLine("Error : "+ex.Message);
+            Log.Error("Error on DeleteCar "+ex.Message);
         }
         
 
@@ -169,6 +160,7 @@ public class Commands
         if(coche is not null)
         {
             Inventory.CarsInStock.Remove(coche);
+            Log.Information($"Delete car with id:{coche.Id} successfully");
         }
         else if(carToBeDeleted == 0)
         {
@@ -188,10 +180,12 @@ public class Commands
         if(Inventory.CarsInStock.Count > 0)
         {
             Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+            Log.Information("Last car deleted via UndoDeleteCar");
         }
         else
         {
             Console.WriteLine("No car to be deleted");
+            Log.Warning("No car to be deleted on via UndoDeleteCar");
         }
         
       
@@ -224,6 +218,7 @@ public class Commands
             {
                 Console.WriteLine("Exception : "+ex.Message);
                 choice = 0;
+                Log.Error("Error on RentCar: "+ex.Message);
             }
 
             //CarRental coche = Inventory.GetCarById(carToBeDeleted);
@@ -237,16 +232,27 @@ public class Commands
                 while(days < selectedCar.RentalPeriod)
                 {
                     Console.WriteLine($"Enter the number of days to be rented:\nMinimum days to rent is: {selectedCar.RentalPeriod}");
-                    days = int.Parse(Console.ReadLine());
+                    try
+                    {
+                        days = int.Parse(Console.ReadLine());
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Error("Error input days to rent a car");
+                        days = 0;
+                    }
+                    
                 }
                 Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
+                Log.Information($"Car with id {selectedCar.Id} rented successfully");
             }
             else if(selectedCar is not null && !selectedCar.IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
+                Log.Warning($"Car with id:{selectedCar.Id} is not available");
             }
             else if(choice == 0)
             {
@@ -271,10 +277,12 @@ public class Commands
         {
             ToRentCar[0].coche.ChangeStatus(false);
             rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+            Log.Information($"Rerent a car with id {ToRentCar[0].coche.Id} via UndoUnrentCar");
         }
         else
         {
             Console.WriteLine("No car to rent again");
+            Log.Warning("Cant UndoUnRentCar");
         }
         
     }
@@ -291,6 +299,7 @@ public class Commands
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You have yet to rent a car");
+            Log.Warning("You have no rented cars to display on RentedCarsInfo");
         }
         else
         {
@@ -303,12 +312,13 @@ public class Commands
                     + $"=> rented for: {rentado.dias} days.\n\tCost:{tmp}"
                 );
             }
+            Log.Information("Rented cars info display successfully");
         }
         
         Console.WriteLine($"Total : {total}");
     }
    
-   //Funcion para eliminar una renta
+   //Function to undo a rent of a car
    public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
@@ -320,6 +330,7 @@ public class Commands
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You dont have any rented car");
+            Log.Warning("No cars rented to unrent via UnRent");
         }
         else
         {
@@ -337,6 +348,7 @@ public class Commands
             {
                 Console.WriteLine("Exception: "+ex.Message);
                 num = 0;
+                Log.Error("Input error on UnRent "+ex.Message);
             }
             
             CarRental coche = null;
@@ -356,10 +368,12 @@ public class Commands
             if(rentedCars.Remove((coche,dias)))
             {
                 Console.WriteLine($"Car with id:{coche.Id} is eliminated from your rents");
+                Log.Information("Rented car unrented successfully");
             }
             else
             {
                 Console.WriteLine($"Not a valid id, retry");
+                Log.Warning("Unsecussfull to unrent a car via UnRent");
             }
         }
 
@@ -367,30 +381,32 @@ public class Commands
     }
 
     //Funcion para eliminar la ultima renta via undo action
-   public static void UndoUnRent(List<(CarRental coche, int dias)> rentedCars)
+   public static void UndoRent(List<(CarRental coche, int dias)> rentedCars)
     {
         if(rentedCars.Count > 0)
         {
             CarRental coche = rentedCars[rentedCars.Count-1].coche;
             coche.ChangeStatus(true);
             rentedCars.RemoveAt(rentedCars.Count-1);
+            Log.Information("Undo rent a car via UndoRent");
         }
         else
         {
             Console.WriteLine("No car to delete from rent");
+            Log.Warning("No cars to unrent via UndoRent");
         }
         
     }
     public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
     List<(CarRental coche, int dias)> deletedRentedCar)
     {
-                
+        Log.Information("Undo Last action =>");
         switch(lastAction)
             {
                 case 0: Console.WriteLine("No action that can be undone"); break;
                 case 2: UndoDeleteCar(); break; //Borra el ultimo coche, el del indice más grande
                 case 3: UndoAddCar(car); break; //Añade el ultimo coche que se elimino
-                case 4: UndoUnRent(rentedCars); break; //Quita la renta del ultimo coche de la lista
+                case 4: UndoRent(rentedCars); break; //Quita la renta del ultimo coche de la lista
                 case 5: UndoUnRentCar(rentedCars, deletedRentedCar); break; //Añade el ultimo coche borrado de la lista de coches rentados
             }
 

@@ -1,5 +1,6 @@
 ﻿using System.Net.ServerSentEvents;
 using WeekOne.Domain;
+using Serilog;
 namespace WeekOne.App;
 
 
@@ -16,6 +17,14 @@ public class Program
         CarRental coche = null;
         //list<int> acciones;
         Console.WriteLine("Welcome!");
+
+        //Comenzar serilog
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.Console()
+            .WriteTo.File("logs/log.txt")
+            .CreateLogger();
+        Log.Information($"Start of App");
         while (running)
         {            
             Commands.PrintMenu();
@@ -29,7 +38,7 @@ public class Program
                 choice = 10;
             }
             
-            
+            Log.Information($"Menu with option {choice}");
             switch (choice)
             {
                 case 0: running = false; break;
@@ -48,7 +57,9 @@ public class Program
         }
 
         Commands.RentedCarsInfo(rentedCars);
+        
         Console.WriteLine("Good Bye!");
+        Log.Information("Closed App");
     }
     
 }
