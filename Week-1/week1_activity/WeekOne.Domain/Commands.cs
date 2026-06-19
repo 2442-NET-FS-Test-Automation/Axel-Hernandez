@@ -400,7 +400,7 @@ public class Commands
     public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
     List<(CarRental coche, int dias)> deletedRentedCar)
     {
-        Log.Information("Undo Last action =>");
+        Log.Information($"Undo Last action =>{lastAction}");
         switch(lastAction)
             {
                 case 0: Console.WriteLine("No action that can be undone"); break;
@@ -411,5 +411,6 @@ public class Commands
             }
 
         Console.WriteLine("Last action undone");
+        Log.Information("Action Undone----------");
     }
 }
