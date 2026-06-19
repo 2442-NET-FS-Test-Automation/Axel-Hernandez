@@ -17,7 +17,7 @@ public class CarRental : CarBase
     //Override Describe()
     public override string Describe()
     {
-        return $"CAR INFO: Brand: {Brand}, Model: {Model}, Daily cost: {DayCost}, Minimum rental period: {RentalPeriod}, Is available: {IsAvailable}";
+        return $"CAR INFO: \n\tBrand: {Brand}, \n\tModel: {Model}, \n\tDaily cost: {DayCost}, \n\tMinimum rental period: {RentalPeriod}, \n\tIs available: {IsAvailable}";
     }
 
     public override int CalculateFee(int days, CarRental car)
