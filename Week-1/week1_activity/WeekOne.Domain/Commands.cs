@@ -7,9 +7,11 @@ public class Commands
         Console.WriteLine("Menu options:");
         Console.WriteLine("1: Print inventory");
         Console.WriteLine("2: Add car to inventory");
-        Console.WriteLine("3: Rent a car"); 
-        Console.WriteLine("4: Cancel a rent"); 
-        Console.WriteLine("5: List of your rented cars");
+        Console.WriteLine("3: Delete a car");
+        Console.WriteLine("4: Rent a car"); 
+        Console.WriteLine("5: Cancel a rent"); 
+        Console.WriteLine("6: List of your rented cars");
+        Console.WriteLine("7: Undo Last Action");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
     }
@@ -50,7 +52,6 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
-
     public static void AddCar()
     {
         Console.WriteLine("--------------------------------");
@@ -79,6 +80,56 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
+    //Add car via undo
+    public static void UndoAddCar(CarRental coche)
+    {
+        if(coche is not null)
+        {
+            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
+            Inventory.CarsInStock.Add(newCar);
+        }
+        else
+        {
+            Console.WriteLine("No car to be added");
+        }
+        
+    }
+
+    //Function to delete an existing car
+    public static CarRental DeleteCar()
+    {
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine("Delete an existing car");
+        Commands.PrintInventory();
+        Console.WriteLine("Which car do you wish to delete? Type id or 0 to exit");
+
+        int carToBeDeleted = Convert.ToInt32(Console.ReadLine());
+
+        CarRental coche = Inventory.GetCarById(carToBeDeleted);
+
+        if(carToBeDeleted > 0 && carToBeDeleted <= Inventory.CarsInStock.Count)
+        {
+            Inventory.CarsInStock.Remove(coche);
+        }
+        else if(carToBeDeleted == 0)
+        {
+            Console.WriteLine("No car deleted"); 
+        }
+        else
+        {
+            Console.WriteLine("No car with sush id");
+        }
+
+        return coche;
+    }
+    
+    //Function to delete a car via undo action
+    public static void UndoDeleteCar()
+    {
+        Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+      
+    }
+    
     //Renew car rental period
     public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
     {
@@ -135,6 +186,15 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
+    //Undo unrent car
+    public static void UndoUnRentCar(List<(CarRental coche, int dias)> rentedCars, List<(CarRental coche, int dias)> ToRentCar)
+    {
+        //Se añade el coche que se quito previamente
+        ToRentCar[0].coche.ChangeStatus(false);
+        rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+    }
+
+
     //Funcion para listar los coches rentados y calcular total
     public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {
@@ -164,11 +224,14 @@ public class Commands
     }
    
    //Funcion para eliminar una renta
-   public static void UnRent(List<(CarRental coche, int dias)> rentedCars)
+   public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Cancel a rent");
+
+        List<(CarRental coche, int dias)> unRentedCars = new();
+
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You dont have any rented car");
@@ -192,6 +255,7 @@ public class Commands
                     coche = item.coche;
                     dias = item.dias;
                     item.coche.ChangeStatus(true);
+                    unRentedCars.Add((coche, dias));
                 }
             }
 
@@ -204,6 +268,30 @@ public class Commands
                 Console.WriteLine($"Not a valid id, retry");
             }
         }
+
+        return unRentedCars;
     }
 
+    //Funcion para eliminar la ultima renta via undo action
+   public static void UndoUnRent(List<(CarRental coche, int dias)> rentedCars)
+    {
+        CarRental coche = rentedCars[rentedCars.Count-1].coche;
+        coche.ChangeStatus(true);
+        rentedCars.RemoveAt(rentedCars.Count-1);
+    }
+    public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
+    List<(CarRental coche, int dias)> deletedRentedCar)
+    {
+                
+        switch(lastAction)
+            {
+                case 0: Console.WriteLine("No action that can be undone"); break;
+                case 2: UndoDeleteCar(); break; //Borra el ultimo coche, el del indice más grande
+                case 3: UndoAddCar(car); break; //Añade el ultimo coche que se elimino
+                case 4: UndoUnRent(rentedCars); break; //Quita la renta del ultimo coche de la lista
+                case 5: UndoUnRentCar(rentedCars, deletedRentedCar); break; //Añade el ultimo coche borrado de la lista de coches rentados
+            }
+
+        Console.WriteLine("Last action undone");
+    }
 }

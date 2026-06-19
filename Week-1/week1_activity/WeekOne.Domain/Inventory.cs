@@ -10,4 +10,16 @@ public class Inventory
         new CarRental("Hunday", "Creta", 45, 2, true),
         new CarRental("Kia", "Rio", 33, 5, true)
     };
+
+    public static CarRental GetCarById(int id)
+    {
+        foreach(CarRental car in CarsInStock)
+        {
+            if(car.Id == id)
+            {
+                return car;
+            }
+        }
+        return null;
+    }
 }
