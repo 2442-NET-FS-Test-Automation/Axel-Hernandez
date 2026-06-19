@@ -17,21 +17,67 @@ public class Commands
     }
 
     //Print initial inventory
+    //public static void PrintInventory()
+    //{
+        // Console.WriteLine("--------------------------------");
+        // Console.WriteLine("1: Printing inventory:");
+        // Console.WriteLine("--------------------------------");
+        // Console.WriteLine("--------------------------------");
+
+        // foreach (var car in Inventory.CarsInStock)
+        // {
+            
+        //     Console.WriteLine($"{car.Id}) {car.ToString()}");
+        //     Console.WriteLine("--------------------------------");
+
+        // }
+        // Console.WriteLine("--------------------------------");
+        //Print initial inventory as a compact grid (Lot x Row), one car per cell
+        //}
+    
     public static void PrintInventory()
     {
-        Console.WriteLine("--------------------------------");
-        Console.WriteLine("1: Printing inventory:");
-        Console.WriteLine("--------------------------------");
-        Console.WriteLine("--------------------------------");
+        int idW = 5, brandW = 14, modelW = 20, costW = 9, periodW = 15, availW = 10;
+        int totalWidth = idW + brandW + modelW + costW + periodW + availW + 7; 
 
-        foreach (var car in Inventory.CarsInStock)
+        string border = new string('-', totalWidth);
+
+        string FormatRow(string id, string brand, string model, string cost, string period, string avail)
         {
-            
-            Console.WriteLine($"{car.Id}) {car.ToString()}");
-            Console.WriteLine("--------------------------------");
-
+            return "|" + id.PadLeft((idW + id.Length) / 2).PadRight(idW)
+                 + "|" + brand.PadLeft((brandW + brand.Length) / 2).PadRight(brandW)
+                 + "|" + model.PadLeft((modelW + model.Length) / 2).PadRight(modelW)
+                 + "|" + cost.PadLeft((costW + cost.Length) / 2).PadRight(costW)
+                 + "|" + period.PadLeft((periodW + period.Length) / 2).PadRight(periodW)
+                 + "|" + avail.PadLeft((availW + avail.Length) / 2).PadRight(availW)
+                 + "|";
         }
-        Console.WriteLine("--------------------------------");
+
+        Console.WriteLine(border);
+        Console.WriteLine(FormatRow("Id", "Brand", "Model", "Daycost", "Rental period", "Available"));
+        Console.WriteLine(border);
+
+        if (Inventory.CarsInStock.Count == 0)
+        {
+            Console.WriteLine(FormatRow("", "", "", "", "", ""));
+        }
+        else
+        {
+            foreach (var car in Inventory.CarsInStock)
+            {
+                string avail = car.IsAvailable ? "Y" : "N";
+                Console.WriteLine(FormatRow(
+                    car.Id.ToString(),
+                    car.Brand,
+                    car.Model,
+                    car.DayCost.ToString(),
+                    car.RentalPeriod.ToString(),
+                    avail
+                ));
+            }
+        }
+
+        Console.WriteLine(border);
     }
 
     public static void PrintAvailableInventory()
