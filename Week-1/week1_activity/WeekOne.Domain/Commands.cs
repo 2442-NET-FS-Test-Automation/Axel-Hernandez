@@ -80,7 +80,7 @@ public class Commands
     }
 
     //Renew car rental period
-    public static void RentCar(List<(CarRental coche, int dias)> rentados)
+    public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
     {
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Rent a car: ");
@@ -114,7 +114,7 @@ public class Commands
                 Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
 
                 inProgress = false;
-                rentados.Add((selectedCar, days));
+                rentedCars.Add((selectedCar, days));
             }
             else if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && !Inventory.CarsInStock[choice - 1].IsAvailable)
             {
@@ -136,20 +136,20 @@ public class Commands
     }
 
     //Funcion para listar los coches rentados y calcular total
-    public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentados)
+    public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Rented cars information");
         int total = 0;
         int tmp = 0;
         Console.WriteLine("Your rented cars:");
-        if(rentados.Count == 0)
+        if(rentedCars.Count == 0)
         {
             Console.WriteLine("You have yet to rent a car");
         }
         else
         {
-            foreach (var rentado in rentados)
+            foreach (var rentado in rentedCars)
             {
                 tmp = rentado.coche.CalculateFee(rentado.dias, rentado.coche);
                 total += tmp;
@@ -164,19 +164,19 @@ public class Commands
     }
    
    //Funcion para eliminar una renta
-   public static void UnRent(List<(CarRental coche, int dias)> rentados)
+   public static void UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Cancel a rent");
-        if(rentados.Count == 0)
+        if(rentedCars.Count == 0)
         {
             Console.WriteLine("You dont have any rented car");
         }
         else
         {
             Console.WriteLine("Rented car(s):");
-            foreach(var item in rentados)
+            foreach(var item in rentedCars)
             {
                 Console.WriteLine($"{item.coche.Id}) {item.coche.Brand}:{item.coche.Model}");
             }
@@ -185,7 +185,7 @@ public class Commands
             num = Convert.ToInt32(Console.ReadLine());
             CarRental coche = null;
             int dias = 0; 
-            foreach(var item in rentados)
+            foreach(var item in rentedCars)
             {
                 if(item.coche.Id == num)
                 {
@@ -195,7 +195,7 @@ public class Commands
                 }
             }
 
-            if(rentados.Remove((coche,dias)))
+            if(rentedCars.Remove((coche,dias)))
             {
                 Console.WriteLine($"Car with id:{coche.Id} is eliminated from your rents");
             }
@@ -206,28 +206,4 @@ public class Commands
         }
     }
 
-    // public static void CalculateFee(int days)
-    // {
-    //     Console.WriteLine("Chose one of the options:");
-
-    //     bool inProgress = true;
-    //     while(inProgress)
-    //     {
-    //         Console.WriteLine("Available cars:");
-    //         Commands.PrintInventory();
-
-    //         Console.WriteLine("Select byt its number:");
-    //         int choice = int.Parse(Console.ReadLine());
-    //         var selectedCar = Inventory.CarsInStock[choice - 1];
-    //         Console.WriteLine($"Car selected: {selectedCar.ToString()}");
-
-    //         Console.ForegroundColor = ConsoleColor.Green;
-    //         Console.WriteLine($"Daily cost: {selectedCar.DayCost}");
-    //         Console.ResetColor();
-
-    //         Console.WriteLine("Enter the number of days you want to rent the car:");
-
-            
-    //     }
-    // }
 }
