@@ -10,6 +10,7 @@ public class Commands
         Console.WriteLine("3: Rent a car"); 
         Console.WriteLine("4: Cancel a rent"); 
         Console.WriteLine("5: List of your rented cars");
+        Console.WriteLine("9: View cars position in parking lot (grid)");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
     }
@@ -204,6 +205,39 @@ public class Commands
                 Console.WriteLine($"Not a valid id, retry");
             }
         }
+    }
+
+    //Displays the parking grid (Lot x Row)
+    public static void PrintGrid()
+    {
+        var grid = ParkingGrid.Calculate(Inventory.CarsInStock.Count);
+
+        if (grid.Lots == 0)
+        {
+            Console.WriteLine("There are no cars in the inventory.");
+            Console.WriteLine("--------------------------------");
+            return;
+        }
+
+        // Builds an empty matrix [row, col] and fills it with each car's Id
+        string[,] cells = new string[grid.Rows, grid.Lots];
+        for (int r = 0; r < grid.Rows; r++)
+            for (int c = 0; c < grid.Lots; c++)
+                cells[r, c] = "---";
+
+        foreach (var car in Inventory.CarsInStock)
+        {
+            var (row, col) = grid.PositionFor(car.Id);
+            cells[row, col] = $"#{car.Id}";
+        }
+ 
+        Console.WriteLine("Position detail:");
+        foreach (var car in Inventory.CarsInStock)
+        {
+            var (row, col) = grid.PositionFor(car.Id);
+            Console.WriteLine($"  Car #{car.Id} ({car.Brand} {car.Model}) -> [Row {row}, Lot {col}]");
+        }
+        Console.WriteLine("--------------------------------");
     }
 
 }

@@ -24,6 +24,7 @@ public class Program
                 case 3: Commands.RentCar(rentedCars); break;
                 case 4: Commands.UnRent(rentedCars); break;
                 case 5: Commands.RentedCarsInfo(rentedCars); break;
+                case 9: Commands.PrintGrid(); break;
                 case 0: running = false; break;
             }
         }
