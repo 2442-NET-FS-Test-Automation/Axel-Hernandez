@@ -9,7 +9,7 @@ public class Program
     {
 
         bool running = true;
-        List<(CarRental coche, int dias)> rentados = new(); //Lista de coches rentador por el usuario. Dupla para tener coche y dias
+        List<(CarRental coche, int dias)> rentedCars = new(); //Lista de coches rentador por el usuario. Dupla para tener coche y dias
         
 
         Console.WriteLine("Welcome!");
@@ -21,14 +21,14 @@ public class Program
             {
                 case 1: Commands.PrintInventory(); break;
                 case 2: Commands.AddCar(); break;
-                case 3: Commands.RentCar(rentados); break;
-                case 4: Commands.UnRent(rentados); break;
-                case 5: Commands.RentedCarsInfo(rentados); break;
+                case 3: Commands.RentCar(rentedCars); break;
+                case 4: Commands.UnRent(rentedCars); break;
+                case 5: Commands.RentedCarsInfo(rentedCars); break;
                 case 0: running = false; break;
             }
         }
 
-        Commands.RentedCarsInfo(rentados);
+        Commands.RentedCarsInfo(rentedCars);
         Console.WriteLine("Good Bye!");
     }
     
