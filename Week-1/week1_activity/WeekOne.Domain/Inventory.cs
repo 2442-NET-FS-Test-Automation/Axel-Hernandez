@@ -44,7 +44,6 @@ public class Inventory
         return true;
     }
 
-
     //List of waiting list
     public static List<CarRental> waitingList = new();
 }

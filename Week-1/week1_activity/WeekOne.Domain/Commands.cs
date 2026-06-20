@@ -1,3 +1,5 @@
+using Serilog;
+
 namespace WeekOne.Domain;
 
 public class Commands
@@ -7,30 +9,61 @@ public class Commands
         Console.WriteLine("Menu options:");
         Console.WriteLine("1: Print inventory");
         Console.WriteLine("2: Add car to inventory");
-        Console.WriteLine("3: Rent a car"); 
-        Console.WriteLine("4: Cancel a rent"); 
-        Console.WriteLine("5: List of your rented cars");
+        Console.WriteLine("3: Delete a car");
+        Console.WriteLine("4: Rent a car"); 
+        Console.WriteLine("5: Cancel a rent"); 
+        Console.WriteLine("6: List of your rented cars");
+        Console.WriteLine("7: Undo Last Action");
         Console.WriteLine("8: Waiting List");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
+        Log.Information("Printed menu successfully");
     }
-
-    //Print initial inventory
+    
     public static void PrintInventory()
     {
-        Console.WriteLine("--------------------------------");
-        Console.WriteLine("1: Printing inventory:");
-        Console.WriteLine("--------------------------------");
-        Console.WriteLine("--------------------------------");
+        int idW = 5, brandW = 14, modelW = 20, costW = 9, periodW = 15, availW = 10;
+        int totalWidth = idW + brandW + modelW + costW + periodW + availW + 7; 
 
-        foreach (var car in Inventory.CarsInStock)
+        string border = new string('-', totalWidth);
+
+        string FormatRow(string id, string brand, string model, string cost, string period, string avail)
         {
-            
-            Console.WriteLine($"{car.Id}) {car.ToString()}");
-            Console.WriteLine("--------------------------------");
-
+            return "|" + id.PadLeft((idW + id.Length) / 2).PadRight(idW)
+                 + "|" + brand.PadLeft((brandW + brand.Length) / 2).PadRight(brandW)
+                 + "|" + model.PadLeft((modelW + model.Length) / 2).PadRight(modelW)
+                 + "|" + cost.PadLeft((costW + cost.Length) / 2).PadRight(costW)
+                 + "|" + period.PadLeft((periodW + period.Length) / 2).PadRight(periodW)
+                 + "|" + avail.PadLeft((availW + avail.Length) / 2).PadRight(availW)
+                 + "|";
         }
-        Console.WriteLine("--------------------------------");
+
+        Console.WriteLine(border);
+        Console.WriteLine(FormatRow("Id", "Brand", "Model", "Daycost", "Rental period", "Available"));
+        Console.WriteLine(border);
+
+        if (Inventory.CarsInStock.Count == 0)
+        {
+            Console.WriteLine(FormatRow("", "", "", "", "", ""));
+        }
+        else
+        {
+            foreach (var car in Inventory.CarsInStock)
+            {
+                string avail = car.IsAvailable ? "Y" : "N";
+                Console.WriteLine(FormatRow(
+                    car.Id.ToString(),
+                    car.Brand,
+                    car.Model,
+                    car.DayCost.ToString(),
+                    car.RentalPeriod.ToString(),
+                    avail
+                ));
+            }
+        }
+
+        Console.WriteLine(border);
+        Log.Information("Printed Inventory successfully");
     }
 
     public static void PrintAvailableInventory()
@@ -42,76 +75,144 @@ public class Commands
 
         foreach (var car in Inventory.CarsInStock)
         {
-
-            //Commenting this, we need to see false items, to add to waiting lis....
-            // if(car.IsAvailable)
-            // {
-            //     Console.WriteLine($"{car.Id}) {car.ToString()}");
-            //     Console.WriteLine("--------------------------------");
-            // }     
             Console.WriteLine($"{car.Id}) {car.ToString()}");
             Console.WriteLine("--------------------------------");
         }
         Console.WriteLine("--------------------------------");
+        Log.Information("Printed Available Inventory successfully");
     }
-
 
     public static void AddCar()
     {
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Add a new Car");
-        Console.WriteLine("Enter brand of the car:");
-        string brand = Console.ReadLine();
+        try
+        {
+            Console.WriteLine("Enter brand of the car:");
+            string brand = Console.ReadLine();
+            
+            Console.WriteLine("Enter model of the car:");
+            string model = Console.ReadLine();
+
+            Console.WriteLine("Enter daily cost of the car:");
+            int dayCost = int.Parse(Console.ReadLine());
         
-        Console.WriteLine("Enter model of the car:");
-        string model = Console.ReadLine();
+            Console.WriteLine("Enter minimum rental period of the car:");
+            int rentalPeriod = int.Parse(Console.ReadLine());
 
-        Console.WriteLine("Enter daily cost of the car:");
-        int dayCost = int.Parse(Console.ReadLine());
-    
-        Console.WriteLine("Enter minimum rental period of the car:");
-        int rentalPeriod = int.Parse(Console.ReadLine());
+            Console.WriteLine("Enter if the car is available (true/false):");
+            bool isAvailable = bool.Parse(Console.ReadLine());
 
-        Console.WriteLine("Enter if the car is available (true/false):");
-        bool isAvailable = bool.Parse(Console.ReadLine());
-
-        //Create nre car with data gathered
-        CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
-        Inventory.CarsInStock.Add(newCar);
-
+            CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
+            Inventory.CarsInStock.Add(newCar);
+            Log.Information("Car added successfully");
+        }catch(Exception ex)
+        {
+            Console.WriteLine("Error with an input: "+ex.Message);
+            Log.Error("Error on AddCar "+ex.Message);
+        }
 
         Console.WriteLine("2: Adding car to inventory:");
         Console.WriteLine("--------------------------------");
     }
 
-    //Renew car rental period
+    public static void UndoAddCar(CarRental coche)
+    {
+        if(coche is not null)
+        {
+            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
+            Inventory.CarsInStock.Add(newCar);
+            Log.Information("Add Car via UndoAddCar");
+        }
+        else
+        {
+            Console.WriteLine("No car to be added");
+            Log.Warning("No car to be added via UndoAddCar");
+        }
+        
+    }
+
+    public static CarRental DeleteCar()
+    {
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine("Delete an existing car");
+        Commands.PrintInventory();
+        Console.WriteLine("Which car do you wish to delete? Type id or 0 to exit");
+
+        int carToBeDeleted = 0;
+        try
+        {
+            carToBeDeleted = Convert.ToInt32(Console.ReadLine());
+        }catch(Exception ex)
+        {
+            Console.WriteLine("Error : "+ex.Message);
+            Log.Error("Error on DeleteCar "+ex.Message);
+        }
+        
+
+        CarRental coche = Inventory.GetCarById(carToBeDeleted);
+
+        if(coche is not null)
+        {
+            Inventory.CarsInStock.Remove(coche);
+            Log.Information($"Delete car with id:{coche.Id} successfully");
+        }
+        else if(carToBeDeleted == 0)
+        {
+            Console.WriteLine("No car deleted"); 
+        }
+        else
+        {
+            Console.WriteLine("No car with sush id");
+        }
+
+        return coche;
+    }
+    
+    public static void UndoDeleteCar()
+    {
+        if(Inventory.CarsInStock.Count > 0)
+        {
+            Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+            Log.Information("Last car deleted via UndoDeleteCar");
+        }
+        else
+        {
+            Console.WriteLine("No car to be deleted");
+            Log.Warning("No car to be deleted on via UndoDeleteCar");
+        }
+        
+      
+    }
+    
     public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
     {
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Rent a car: ");
 
-        Console.WriteLine("Choose one from the available stock:"); //Comment
+        Console.WriteLine("Choose one from the available stock:");
 
         bool inProgress = true;
         while(inProgress)
         {
-            Commands.PrintAvailableInventory();
-            Console.WriteLine("Select the car, by it's numbered option or 0 to exit:");
+            Commands.PrintInventory();
+            Console.WriteLine("Select the car by its id or 0 to exit:");
 
-            //Select number of days
-
-            //choice
-            int choice = int.Parse(Console.ReadLine());
-
-            //evaluate first, if choice isAvailable only, nothing else
-            Console.WriteLine("-------------  Testing changes Axel -------------------");
-            Console.WriteLine($"testing choice: {choice}");
-
-
-            if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && Inventory.CarsInStock[choice - 1].IsAvailable)
+            int choice = 0;
+            CarRental selectedCar = null;
+            try
             {
-                var selectedCar = Inventory.CarsInStock[choice - 1];
-            
+                choice = int.Parse(Console.ReadLine());
+                selectedCar = Inventory.GetCarById(choice);
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception : "+ex.Message);
+                choice = 0;
+                Log.Error("Error on RentCar: "+ex.Message);
+            }
+
+            if(selectedCar is not null && selectedCar.IsAvailable)
+            {            
                 selectedCar.ChangeStatus(false);
                 Console.WriteLine($"Car selected for rental: {selectedCar.ToString()}");
 
@@ -120,47 +221,45 @@ public class Commands
                 while(days < selectedCar.RentalPeriod)
                 {
                     Console.WriteLine($"Enter the number of days to be rented:\nMinimum days to rent is: {selectedCar.RentalPeriod}");
-                    days = int.Parse(Console.ReadLine());
+                    try
+                    {
+                        days = int.Parse(Console.ReadLine());
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Error("Error input days to rent a car");
+                        days = 0;
+                    }
+                    
                 }
                 Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
+                Log.Information($"Car with id {selectedCar.Id} rented successfully");
             }
-            else if(choice > 0 && choice -1 < Inventory.CarsInStock.Count && !Inventory.CarsInStock[choice - 1].IsAvailable)
+            else if(selectedCar is not null && !selectedCar.IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
-                
-                bool addingToWaitingList = true;
+                Log.Warning($"Car with id:{selectedCar.Id} is not available");
 
-                //Check if on waiting list
-                if(Inventory.waitingList.Contains(Inventory.CarsInStock[choice - 1]))
+                if (Inventory.waitingList.Contains(selectedCar))
                 {
                     Console.WriteLine("Car already in waiting list");
-                    addingToWaitingList = false;
                     return;
                 }
 
-
-
+                bool addingToWaitingList = true;
                 while(addingToWaitingList)
                 {
                     Console.WriteLine("Would you like to add this car to the waiting list? (y/n)");
                     string answer = Console.ReadLine();
                     if(answer == "y")
                     {
-                        Console.WriteLine("Adding to waiting list...");
-
-                        
-
-                        Inventory.waitingList.Add(Inventory.CarsInStock[choice - 1]);
-
+                        Inventory.waitingList.Add(selectedCar);
                         Console.WriteLine("----- Car Added to Waiting List -----");
-
-
                         addingToWaitingList = false;
                         return;
-
                     }
                     else if(answer == "n")
                     {
@@ -185,7 +284,23 @@ public class Commands
         Console.WriteLine("--------------------------------");
     }
 
-    //Funcion para listar los coches rentados y calcular total
+    public static void UndoUnRentCar(List<(CarRental coche, int dias)> rentedCars, List<(CarRental coche, int dias)> ToRentCar)
+    {
+        if(ToRentCar.Count > 0)
+        {
+            ToRentCar[0].coche.ChangeStatus(false);
+            rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
+            Log.Information($"Rerent a car with id {ToRentCar[0].coche.Id} via UndoUnrentCar");
+        }
+        else
+        {
+            Console.WriteLine("No car to rent again");
+            Log.Warning("Cant UndoUnRentCar");
+        }
+        
+    }
+
+
     public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {
         Console.WriteLine("--------------------------------");
@@ -196,6 +311,7 @@ public class Commands
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You have yet to rent a car");
+            Log.Warning("You have no rented cars to display on RentedCarsInfo");
         }
         else
         {
@@ -208,20 +324,24 @@ public class Commands
                     + $"=> rented for: {rentado.dias} days.\n\tCost:{tmp}"
                 );
             }
+            Log.Information("Rented cars info display successfully");
         }
         
         Console.WriteLine($"Total : {total}");
     }
    
-   //Funcion para eliminar una renta
-   public static void UnRent(List<(CarRental coche, int dias)> rentedCars)
+   public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
         Console.WriteLine("--------------------------------");
         Console.WriteLine("Cancel a rent");
+
+        List<(CarRental coche, int dias)> unRentedCars = new();
+
         if(rentedCars.Count == 0)
         {
             Console.WriteLine("You dont have any rented car");
+            Log.Warning("No cars rented to unrent via UnRent");
         }
         else
         {
@@ -232,9 +352,19 @@ public class Commands
             }
             Console.WriteLine("Which car do you want to eliminate?");
 
-            num = Convert.ToInt32(Console.ReadLine());
+            try
+            {
+                num = Convert.ToInt32(Console.ReadLine());
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception: "+ex.Message);
+                num = 0;
+                Log.Error("Input error on UnRent "+ex.Message);
+            }
+            
             CarRental coche = null;
             int dias = 0; 
+
             foreach(var item in rentedCars)
             {
                 if(item.coche.Id == num)
@@ -242,22 +372,58 @@ public class Commands
                     coche = item.coche;
                     dias = item.dias;
                     item.coche.ChangeStatus(true);
+                    unRentedCars.Add((coche, dias));
                 }
             }
 
             if(rentedCars.Remove((coche,dias)))
             {
                 Console.WriteLine($"Car with id:{coche.Id} is eliminated from your rents");
+                Log.Information("Rented car unrented successfully");
             }
             else
             {
                 Console.WriteLine($"Not a valid id, retry");
+                Log.Warning("Unsecussfull to unrent a car via UnRent");
             }
         }
+
+        return unRentedCars;
     }
 
+    public static void UndoRent(List<(CarRental coche, int dias)> rentedCars)
+    {
+        if(rentedCars.Count > 0)
+        {
+            CarRental coche = rentedCars[rentedCars.Count-1].coche;
+            coche.ChangeStatus(true);
+            rentedCars.RemoveAt(rentedCars.Count-1);
+            Log.Information("Undo rent a car via UndoRent");
+        }
+        else
+        {
+            Console.WriteLine("No car to delete from rent");
+            Log.Warning("No cars to unrent via UndoRent");
+        }
+        
+    }
 
-    //waiting list
+    public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
+    List<(CarRental coche, int dias)> deletedRentedCar)
+    {
+        Log.Information($"Undo Last action =>{lastAction}");
+        switch(lastAction)
+            {
+                case 0: Console.WriteLine("No action that can be undone"); break;
+                case 2: UndoDeleteCar(); break;
+                case 3: UndoAddCar(car); break;
+                case 4: UndoRent(rentedCars); break;
+                case 5: UndoUnRentCar(rentedCars, deletedRentedCar); break;
+            }
+
+        Console.WriteLine("Last action undone");
+        Log.Information("Action Undone----------");
+    }
 
     public static void ReorderWaitingList()
     {
@@ -316,23 +482,21 @@ public class Commands
                 }
             }
 
-            // Submenu — INSIDE the loop, AFTER the list
             Console.WriteLine();
             Console.WriteLine("1: Change order");
             Console.WriteLine("0: Back to main menu");
             Console.WriteLine("Enter your choice:");
 
-            int choice = int.Parse(Console.ReadLine());  // ← read HERE
+            int choice = int.Parse(Console.ReadLine());
 
             switch (choice)
             {
                 case 1:
-                    ReorderWaitingList();  // when ready
-                    Console.WriteLine("Change order — implement next");
+                    ReorderWaitingList();
                     break;
 
                 case 0:
-                    inProgress = false;  // ← only way out
+                    inProgress = false;
                     break;
 
                 default:
@@ -341,5 +505,4 @@ public class Commands
             }
         }
     }
-
 }
