@@ -113,7 +113,7 @@ public class Commands
         }catch(Exception ex)
         {
             Console.WriteLine("Error with an input: "+ex.Message);
-            Log.Error("Error on AddCar "+ex.Message);
+            Log.Error($"Error on AddCar {ex.Message}");
         }
 
         Console.WriteLine("2: Adding car to inventory:");
@@ -158,8 +158,17 @@ public class Commands
 
         if(coche is not null)
         {
-            Inventory.Remove(coche);
-            Log.Information($"Delete car with id:{coche.Id} successfully");
+            try
+            {
+                Inventory.Remove(coche);
+            }catch(NoCarFoundException ex)
+            {
+
+                Log.Error(ex.Message);
+                Console.WriteLine("No car with that id");
+            }
+            
+            
         }
         else if(carToBeDeleted == 0)
         {
@@ -175,18 +184,20 @@ public class Commands
     
     public static void UndoDeleteCar()
     {
-        if(Inventory.Count > 0)
+        
+        try
         {
             Inventory.RemoveLast();
-            Log.Information("Last car deleted via UndoDeleteCar");
-        }
-        else
+        }catch(NoCarFoundException ex)
         {
-            Console.WriteLine("No car to be deleted");
-            Log.Warning("No car to be deleted on via UndoDeleteCar");
+            Console.WriteLine(ex.Message);
+            Log.Error(ex.Message);
+            return;
         }
-        
-      
+            
+        Log.Information("Last car deleted via UndoDeleteCar");
+        Console.WriteLine("Car deleted successfully");
+    
     }
     
     public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
@@ -304,7 +315,6 @@ public class Commands
         }
         
     }
-
 
     public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {

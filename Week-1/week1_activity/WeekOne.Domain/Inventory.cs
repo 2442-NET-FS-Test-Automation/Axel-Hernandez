@@ -22,7 +22,19 @@ public class Inventory
         _CarsInStock.Add(car);
     }
     
-    public static bool Remove(CarRental car) => _CarsInStock.Remove(car);
+    public static bool Remove(CarRental car)
+    {
+        if(GetCarById(car.Id) is null)
+        {
+            throw new NoCarFoundException($"No car found with id {car.Id}");
+        }
+        else
+        {
+            _CarsInStock.Remove(car);
+            return true;
+        }
+        
+    } 
 
     public static bool RemoveLast()
     {
@@ -33,6 +45,7 @@ public class Inventory
         }
         else
         {
+            throw new NoCarFoundException("No Last Car found to be RemoveLast");
             return false;
         }
     }
