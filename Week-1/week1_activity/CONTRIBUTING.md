@@ -16,6 +16,6 @@ This document outlines our branch, pull request, and review conventions.
 - At least 1 reviewer required
 
 ## Commit Style
-feat: add new feature
-medidy: modify what documents
-fix: bug fix
+- Feat: add new feature
+- Modify: modify what documents
+- fix: bug fix
