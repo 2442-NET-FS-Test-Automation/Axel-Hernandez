@@ -61,6 +61,7 @@ public class Program
         
         Console.WriteLine("Good Bye!");
         Log.Information("Closed App");
+        Log.CloseAndFlush();
     }
     
 }

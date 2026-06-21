@@ -554,6 +554,7 @@ public class Commands
     public static void SearchBrowseMenuLoop()
     {
         bool inSubMenu = true;
+        Log.Information("SearchBrowseMenuLoop print");
         while (inSubMenu)
         {
             PrintSearchBrowseMenu();
@@ -589,11 +590,13 @@ public class Commands
         }
 
         CarRental found = null;
+        Log.Information($"Look up car by id {searchId}");
         foreach (var car in Inventory.CarsInStock)
         {
             if (car.Id == searchId)
             {
                 found = car;
+                Log.Information($"Car with id {searchId} found");
                 break;
             }
         }
@@ -608,6 +611,7 @@ public class Commands
         }
 
         Console.WriteLine("--------------------------------");
+        
     }
 
     //Lists each distinct brand once, no duplicates
@@ -646,6 +650,7 @@ public class Commands
         }
 
         Console.WriteLine("--------------------------------");
+        Log.Information("Car brands listed");
     }
 
     //Filters cars by day cost (over X or under X)
@@ -720,5 +725,7 @@ public class Commands
                 Console.WriteLine("--------------------------------");
             }
         }
+
+        Log.Information($"Search car by condition. Min {overValue}, Max {underValue}");
     }
 }
