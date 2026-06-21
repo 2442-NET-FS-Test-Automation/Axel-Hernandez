@@ -25,7 +25,7 @@ public partial class Commands
     {
         if(coche is not null)
         {
-            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
+            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.Status);
             Inventory.Add(newCar);
             Log.Information("Add Car via UndoAddCar");
         }
@@ -59,7 +59,7 @@ public partial class Commands
     {
         if(ToRentCar.Count > 0)
         {
-            ToRentCar[0].coche.ChangeStatus(false);
+            ToRentCar[0].coche.ChangeStatus(CarStatus.Rented);
             rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
             Log.Information("Rerent a car with id {coche.Id} via UndoUnrentCar", ToRentCar[0].coche.Id);
         }
@@ -76,7 +76,7 @@ public partial class Commands
         if(rentedCars.Count > 0)
         {
             CarRental coche = rentedCars[rentedCars.Count-1].coche;
-            coche.ChangeStatus(true);
+            coche.ChangeStatus(CarStatus.Available);
             rentedCars.RemoveAt(rentedCars.Count-1);
             Log.Information("Undo rent a car via UndoRent");
         }

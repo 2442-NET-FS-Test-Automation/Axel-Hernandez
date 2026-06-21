@@ -50,7 +50,7 @@ public class OpenLibraryClient
 
         if(brand != "No Brand" && model != "No Model")
         {
-            CarRental car = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
+            CarRental car = new CarRental(brand, model, dayCost, rentalPeriod, CarStatus.Available);
             return car; 
         }
         return null;        

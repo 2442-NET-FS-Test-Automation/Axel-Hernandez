@@ -8,10 +8,10 @@ public class Inventory
     //List of cars, with initial items
     readonly static List<CarRental> _CarsInStock = new()
     {
-        new CarRental("Honda", "Accord", 40, 3, true),
-        new CarRental("Toyota", "Camry", 50, 3, true),
-        new CarRental("Hunday", "Creta", 45, 2, true),
-        new CarRental("Kia", "Rio", 33, 5, true)
+        new CarRental("Honda", "Accord", 40, 3, CarStatus.Available),
+        new CarRental("Toyota", "Camry", 50, 3, CarStatus.Available),
+        new CarRental("Hunday", "Creta", 45, 2, CarStatus.Available),
+        new CarRental("Kia", "Rio", 33, 5, CarStatus.Available)
     };
 
     public static int Count => _CarsInStock.Count;
