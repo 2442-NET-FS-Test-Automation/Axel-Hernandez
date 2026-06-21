@@ -2,7 +2,7 @@ using Serilog;
 
 namespace WeekOne.Domain;
 
-public class Commands
+public partial class Commands
 {
     public static void PrintMenu()
     {
@@ -15,6 +15,8 @@ public class Commands
         Console.WriteLine("6: List of your rented cars");
         Console.WriteLine("7: Undo Last Action");
         Console.WriteLine("8: Waiting List");
+        Console.WriteLine("9: Async method");
+        Console.WriteLine("10: Search & Browse");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
         Log.Information("Printed menu successfully");
@@ -42,13 +44,15 @@ public class Commands
         Console.WriteLine(FormatRow("Id", "Brand", "Model", "Daycost", "Rental period", "Available"));
         Console.WriteLine(border);
 
-        if (Inventory.CarsInStock.Count == 0)
+
+
+        if (Inventory.GetInventory().Count == 0)
         {
             Console.WriteLine(FormatRow("", "", "", "", "", ""));
         }
         else
         {
-            foreach (var car in Inventory.CarsInStock)
+            foreach (var car in Inventory.GetInventory())
             {
                 string avail = car.IsAvailable ? "Y" : "N";
                 Console.WriteLine(FormatRow(
@@ -73,7 +77,7 @@ public class Commands
         Console.WriteLine("--------------------------------");
         Console.WriteLine("--------------------------------");
 
-        foreach (var car in Inventory.CarsInStock)
+        foreach (var car in Inventory.GetInventory())
         {
             Console.WriteLine($"{car.Id}) {car.ToString()}");
             Console.WriteLine("--------------------------------");
@@ -104,32 +108,16 @@ public class Commands
             bool isAvailable = bool.Parse(Console.ReadLine());
 
             CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
-            Inventory.CarsInStock.Add(newCar);
+            Inventory.Add(newCar);
             Log.Information("Car added successfully");
         }catch(Exception ex)
         {
             Console.WriteLine("Error with an input: "+ex.Message);
-            Log.Error("Error on AddCar "+ex.Message);
+            Log.Error("Error on AddCar {ex.Message}", ex.Message);
         }
 
         Console.WriteLine("2: Adding car to inventory:");
         Console.WriteLine("--------------------------------");
-    }
-
-    public static void UndoAddCar(CarRental coche)
-    {
-        if(coche is not null)
-        {
-            CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
-            Inventory.CarsInStock.Add(newCar);
-            Log.Information("Add Car via UndoAddCar");
-        }
-        else
-        {
-            Console.WriteLine("No car to be added");
-            Log.Warning("No car to be added via UndoAddCar");
-        }
-        
     }
 
     public static CarRental DeleteCar()
@@ -146,7 +134,7 @@ public class Commands
         }catch(Exception ex)
         {
             Console.WriteLine("Error : "+ex.Message);
-            Log.Error("Error on DeleteCar "+ex.Message);
+            Log.Error("Error on DeleteCar {ex.Message}",ex.Message);
         }
         
 
@@ -154,8 +142,17 @@ public class Commands
 
         if(coche is not null)
         {
-            Inventory.CarsInStock.Remove(coche);
-            Log.Information($"Delete car with id:{coche.Id} successfully");
+            try
+            {
+                Inventory.Remove(coche);
+            }catch(NoCarFoundException ex)
+            {
+
+                Log.Error("Error at DeleteCar: {ex.Message}",ex.Message);
+                Console.WriteLine("No car with that id");
+            }
+            
+            
         }
         else if(carToBeDeleted == 0)
         {
@@ -167,22 +164,6 @@ public class Commands
         }
 
         return coche;
-    }
-    
-    public static void UndoDeleteCar()
-    {
-        if(Inventory.CarsInStock.Count > 0)
-        {
-            Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
-            Log.Information("Last car deleted via UndoDeleteCar");
-        }
-        else
-        {
-            Console.WriteLine("No car to be deleted");
-            Log.Warning("No car to be deleted on via UndoDeleteCar");
-        }
-        
-      
     }
     
     public static void RentCar(List<(CarRental coche, int dias)> rentedCars)
@@ -208,7 +189,7 @@ public class Commands
             {
                 Console.WriteLine("Exception : "+ex.Message);
                 choice = 0;
-                Log.Error("Error on RentCar: "+ex.Message);
+                Log.Error("Error on RentCar: {ex.Message}",ex.Message);
             }
 
             if(selectedCar is not null && selectedCar.IsAvailable)
@@ -236,12 +217,12 @@ public class Commands
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
-                Log.Information($"Car with id {selectedCar.Id} rented successfully");
+                Log.Information("Car with id {selectedCar.Id} rented successfully", selectedCar.Id);
             }
             else if(selectedCar is not null && !selectedCar.IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
-                Log.Warning($"Car with id:{selectedCar.Id} is not available");
+                Log.Warning("Car with id:{selectedCar.Id} is not available", selectedCar.Id);
 
                 if (Inventory.waitingList.Contains(selectedCar))
                 {
@@ -259,6 +240,7 @@ public class Commands
                         Inventory.waitingList.Add(selectedCar);
                         Console.WriteLine("----- Car Added to Waiting List -----");
                         addingToWaitingList = false;
+                        Log.Information("Added to waiting list");
                         return;
                     }
                     else if(answer == "n")
@@ -283,23 +265,6 @@ public class Commands
         Console.WriteLine("3: Renting car.....");
         Console.WriteLine("--------------------------------");
     }
-
-    public static void UndoUnRentCar(List<(CarRental coche, int dias)> rentedCars, List<(CarRental coche, int dias)> ToRentCar)
-    {
-        if(ToRentCar.Count > 0)
-        {
-            ToRentCar[0].coche.ChangeStatus(false);
-            rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
-            Log.Information($"Rerent a car with id {ToRentCar[0].coche.Id} via UndoUnrentCar");
-        }
-        else
-        {
-            Console.WriteLine("No car to rent again");
-            Log.Warning("Cant UndoUnRentCar");
-        }
-        
-    }
-
 
     public static void RentedCarsInfo(List<(CarRental coche, int dias)> rentedCars)
     {
@@ -330,7 +295,7 @@ public class Commands
         Console.WriteLine($"Total : {total}");
     }
    
-   public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
+    public static List<(CarRental coche, int dias)> UnRent(List<(CarRental coche, int dias)> rentedCars)
     {
         int num = 0;
         Console.WriteLine("--------------------------------");
@@ -359,7 +324,7 @@ public class Commands
             {
                 Console.WriteLine("Exception: "+ex.Message);
                 num = 0;
-                Log.Error("Input error on UnRent "+ex.Message);
+                Log.Error("Input error on UnRent {ex.Message}",ex.Message);
             }
             
             CarRental coche = null;
@@ -389,40 +354,6 @@ public class Commands
         }
 
         return unRentedCars;
-    }
-
-    public static void UndoRent(List<(CarRental coche, int dias)> rentedCars)
-    {
-        if(rentedCars.Count > 0)
-        {
-            CarRental coche = rentedCars[rentedCars.Count-1].coche;
-            coche.ChangeStatus(true);
-            rentedCars.RemoveAt(rentedCars.Count-1);
-            Log.Information("Undo rent a car via UndoRent");
-        }
-        else
-        {
-            Console.WriteLine("No car to delete from rent");
-            Log.Warning("No cars to unrent via UndoRent");
-        }
-        
-    }
-
-    public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
-    List<(CarRental coche, int dias)> deletedRentedCar)
-    {
-        Log.Information($"Undo Last action =>{lastAction}");
-        switch(lastAction)
-            {
-                case 0: Console.WriteLine("No action that can be undone"); break;
-                case 2: UndoDeleteCar(); break;
-                case 3: UndoAddCar(car); break;
-                case 4: UndoRent(rentedCars); break;
-                case 5: UndoUnRentCar(rentedCars, deletedRentedCar); break;
-            }
-
-        Console.WriteLine("Last action undone");
-        Log.Information("Action Undone----------");
     }
 
     public static void ReorderWaitingList()
@@ -487,7 +418,16 @@ public class Commands
             Console.WriteLine("0: Back to main menu");
             Console.WriteLine("Enter your choice:");
 
-            int choice = int.Parse(Console.ReadLine());
+            int choice;
+            try
+            {
+                choice = int.Parse(Console.ReadLine());
+            }catch(Exception ex)
+            {
+                Log.Error("Input error at WaitingListInfo ");
+                choice = 2;
+            }
+            
 
             switch (choice)
             {
@@ -505,4 +445,35 @@ public class Commands
             }
         }
     }
+
+    public static async Task AsyncHttpDemo()
+    {
+        OpenLibraryClient open = new();
+
+        Console.WriteLine("Which id do you want to fetch? 3 digits. You can also leave blank");
+        int id; 
+        try
+        {
+            id = int.Parse(Console.ReadLine());
+        }
+        catch(Exception ex)
+        {
+            Log.Warning("Warning input id to fecth {ex.Message}",ex.Message);
+            id = 440;
+        }
+
+        CarRental? foundCars = await open.FetchByIdAsync(id);
+
+        if(foundCars is not null)
+        {
+            Inventory.Add(foundCars);
+            Log.Information("Car added via fetch api");
+        }
+        else
+        {
+            Log.Warning("No car was successfully fetch via api");
+        }
+
+    }
+
 }
