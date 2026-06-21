@@ -214,7 +214,11 @@ public partial class Commands
                     }
                     
                 }
-                Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
+                // Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
+
+
+                RentalQuote quote = new RentalQuote(days, selectedCar.DayCost);
+                Console.WriteLine($"Total bill: {quote}");
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
