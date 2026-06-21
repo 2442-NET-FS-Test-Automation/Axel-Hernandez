@@ -21,11 +21,11 @@ public class OpenLibraryClient
         }
         catch (HttpRequestException ex)
         {
-            Log.Warning($"Network fetch failed for {id}: {ex.Message}");
+            Log.Error("Network fetch failed for {id}: {ex.Message}", id, ex.Message);
             return null;
         }catch(Exception ex)
         {
-            Log.Warning($"FetchByIsbnAsync failed: {ex.Message}");
+            Log.Error("FetchByIsbnAsync failed: {ex.Message}", ex.Message);
             return null;
         }
     }
@@ -53,6 +53,6 @@ public class OpenLibraryClient
             CarRental car = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
             return car; 
         }
-        return null;         
+        return null;        
     }
 }
