@@ -50,6 +50,7 @@ public class Program
                 case 7: Commands.UndoLastAction(lastAction, rentedCars, coche, UnRentedCars); lastAction = 0; break;
                 case 8: Commands.WaitingListInfo(); break;
                 case 9: await Commands.AsyncHttpDemo(); break; 
+                case 10: Commands.SearchBrowseMenuLoop(); break;
                 default: Console.WriteLine("Not a valid option"); break;
             }
             if(possibleAction.Contains(choice)) //Si es de las acciones que se pueden deshacer se guarda
