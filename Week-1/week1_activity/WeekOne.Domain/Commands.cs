@@ -15,6 +15,7 @@ public class Commands
         Console.WriteLine("6: List of your rented cars");
         Console.WriteLine("7: Undo Last Action");
         Console.WriteLine("8: Waiting List");
+        Console.WriteLine("9: Async method");
         Console.WriteLine("0: Exit");
         Console.WriteLine("Enter your choice:");
         Log.Information("Printed menu successfully");
@@ -504,5 +505,25 @@ public class Commands
                     break;
             }
         }
+    }
+
+    public static async Task AsyncHttpDemo()
+    {
+        OpenLibraryClient open = new();
+
+        int id = 441;
+
+        CarRental? foundCars = await open.FetchByIdAsync(id);
+
+        if(foundCars is not null)
+        {
+            Inventory.CarsInStock.Add(foundCars);
+            Log.Information("Car added via fetch api");
+        }
+        else
+        {
+            Log.Warning("No car was successfully fetch via api");
+        }
+
     }
 }

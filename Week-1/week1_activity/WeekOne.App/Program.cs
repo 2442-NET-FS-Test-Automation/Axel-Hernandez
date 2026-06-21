@@ -6,7 +6,7 @@ namespace WeekOne.App;
 
 public class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
 
         bool running = true;
@@ -49,6 +49,7 @@ public class Program
                 case 6: Commands.RentedCarsInfo(rentedCars); break;
                 case 7: Commands.UndoLastAction(lastAction, rentedCars, coche, UnRentedCars); lastAction = 0; break;
                 case 8: Commands.WaitingListInfo(); break;
+                case 9: await Commands.AsyncHttpDemo(); break; 
                 default: Console.WriteLine("Not a valid option"); break;
             }
             if(possibleAction.Contains(choice)) //Si es de las acciones que se pueden deshacer se guarda
