@@ -106,8 +106,9 @@ public partial class Commands
 
             Console.WriteLine("Enter if the car is available (true/false):");
             bool isAvailable = bool.Parse(Console.ReadLine());
+            CarStatus status = isAvailable ? CarStatus.Available : CarStatus.Rented;
 
-            CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
+            CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, status);
             Inventory.Add(newCar);
             Log.Information("Car added successfully");
         }catch(Exception ex)
@@ -194,7 +195,7 @@ public partial class Commands
 
             if(selectedCar is not null && selectedCar.IsAvailable)
             {            
-                selectedCar.ChangeStatus(false);
+                selectedCar.ChangeStatus(CarStatus.Rented);
                 Console.WriteLine($"Car selected for rental: {selectedCar.ToString()}");
 
                 
@@ -213,7 +214,11 @@ public partial class Commands
                     }
                     
                 }
-                Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
+                // Console.WriteLine($"Total bill: ${selectedCar.CalculateFee(days, selectedCar)}");
+
+
+                RentalQuote quote = new RentalQuote(days, selectedCar.DayCost);
+                Console.WriteLine($"Total bill: {quote}");
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
@@ -336,7 +341,7 @@ public partial class Commands
                 {
                     coche = item.coche;
                     dias = item.dias;
-                    item.coche.ChangeStatus(true);
+                    item.coche.ChangeStatus(CarStatus.Available);
                     unRentedCars.Add((coche, dias));
                 }
             }
