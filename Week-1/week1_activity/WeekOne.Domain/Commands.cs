@@ -511,7 +511,17 @@ public class Commands
     {
         OpenLibraryClient open = new();
 
-        int id = 441;
+        Console.WriteLine("Which id do you want to fetch? 3 digits");
+        int id; 
+        try
+        {
+            id = int.Parse(Console.ReadLine());
+        }
+        catch(Exception ex)
+        {
+            Log.Warning("Warning input id to fecth "+ex.Message);
+            id = 440;
+        }
 
         CarRental? foundCars = await open.FetchByIdAsync(id);
 
