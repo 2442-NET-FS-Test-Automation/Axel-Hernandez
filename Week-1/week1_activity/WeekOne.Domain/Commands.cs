@@ -44,13 +44,15 @@ public class Commands
         Console.WriteLine(FormatRow("Id", "Brand", "Model", "Daycost", "Rental period", "Available"));
         Console.WriteLine(border);
 
-        if (Inventory.CarsInStock.Count == 0)
+
+
+        if (Inventory.GetInventory().Count == 0)
         {
             Console.WriteLine(FormatRow("", "", "", "", "", ""));
         }
         else
         {
-            foreach (var car in Inventory.CarsInStock)
+            foreach (var car in Inventory.GetInventory())
             {
                 string avail = car.IsAvailable ? "Y" : "N";
                 Console.WriteLine(FormatRow(
@@ -75,7 +77,7 @@ public class Commands
         Console.WriteLine("--------------------------------");
         Console.WriteLine("--------------------------------");
 
-        foreach (var car in Inventory.CarsInStock)
+        foreach (var car in Inventory.GetInventory())
         {
             Console.WriteLine($"{car.Id}) {car.ToString()}");
             Console.WriteLine("--------------------------------");
@@ -106,7 +108,7 @@ public class Commands
             bool isAvailable = bool.Parse(Console.ReadLine());
 
             CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, isAvailable);
-            Inventory.CarsInStock.Add(newCar);
+            Inventory.Add(newCar);
             Log.Information("Car added successfully");
         }catch(Exception ex)
         {
@@ -123,7 +125,7 @@ public class Commands
         if(coche is not null)
         {
             CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.IsAvailable);
-            Inventory.CarsInStock.Add(newCar);
+            Inventory.Add(newCar);
             Log.Information("Add Car via UndoAddCar");
         }
         else
@@ -156,7 +158,7 @@ public class Commands
 
         if(coche is not null)
         {
-            Inventory.CarsInStock.Remove(coche);
+            Inventory.Remove(coche);
             Log.Information($"Delete car with id:{coche.Id} successfully");
         }
         else if(carToBeDeleted == 0)
@@ -173,9 +175,9 @@ public class Commands
     
     public static void UndoDeleteCar()
     {
-        if(Inventory.CarsInStock.Count > 0)
+        if(Inventory.Count > 0)
         {
-            Inventory.CarsInStock.RemoveAt(Inventory.CarsInStock.Count-1);
+            Inventory.RemoveLast();
             Log.Information("Last car deleted via UndoDeleteCar");
         }
         else
@@ -261,6 +263,7 @@ public class Commands
                         Inventory.waitingList.Add(selectedCar);
                         Console.WriteLine("----- Car Added to Waiting List -----");
                         addingToWaitingList = false;
+                        Log.Information("Added to waiting list");
                         return;
                     }
                     else if(answer == "n")
@@ -512,7 +515,7 @@ public class Commands
     {
         OpenLibraryClient open = new();
 
-        Console.WriteLine("Which id do you want to fetch? 3 digits");
+        Console.WriteLine("Which id do you want to fetch? 3 digits. You can also leave blank");
         int id; 
         try
         {
@@ -528,7 +531,7 @@ public class Commands
 
         if(foundCars is not null)
         {
-            Inventory.CarsInStock.Add(foundCars);
+            Inventory.Add(foundCars);
             Log.Information("Car added via fetch api");
         }
         else
@@ -591,7 +594,7 @@ public class Commands
 
         CarRental found = null;
         Log.Information($"Look up car by id {searchId}");
-        foreach (var car in Inventory.CarsInStock)
+        foreach (var car in Inventory.GetInventory())
         {
             if (car.Id == searchId)
             {
@@ -621,7 +624,7 @@ public class Commands
         Console.WriteLine("Distinct brands in inventory");
         Console.WriteLine("--------------------------------");
 
-        int entityCount = Inventory.CarsInStock.Count;
+        int entityCount = Inventory.Count;
 
         if (entityCount == 0)
         {
@@ -632,7 +635,7 @@ public class Commands
 
         List<string> distinctBrands = new List<string>();
 
-        foreach (var car in Inventory.CarsInStock)
+        foreach (var car in Inventory.GetInventory())
         {
             if (!distinctBrands.Contains(car.Brand))
             {
@@ -705,7 +708,7 @@ public class Commands
         }
 
         // Filter cars matching both conditions
-        List<CarRental> results = Inventory.CarsInStock.FindAll(
+        List<CarRental> results = Inventory.GetInventory().FindAll(
             car => car.DayCost > overValue && car.DayCost < underValue
         );
 
