@@ -113,7 +113,7 @@ public class Commands
         }catch(Exception ex)
         {
             Console.WriteLine("Error with an input: "+ex.Message);
-            Log.Error($"Error on AddCar {ex.Message}");
+            Log.Error("Error on AddCar {ex.Message}", ex.Message);
         }
 
         Console.WriteLine("2: Adding car to inventory:");
@@ -150,7 +150,7 @@ public class Commands
         }catch(Exception ex)
         {
             Console.WriteLine("Error : "+ex.Message);
-            Log.Error("Error on DeleteCar "+ex.Message);
+            Log.Error("Error on DeleteCar {ex.Message}",ex.Message);
         }
         
 
@@ -164,7 +164,7 @@ public class Commands
             }catch(NoCarFoundException ex)
             {
 
-                Log.Error(ex.Message);
+                Log.Error("Error at DeleteCar: {ex.Message}",ex.Message);
                 Console.WriteLine("No car with that id");
             }
             
@@ -191,7 +191,7 @@ public class Commands
         }catch(NoCarFoundException ex)
         {
             Console.WriteLine(ex.Message);
-            Log.Error(ex.Message);
+            Log.Error("Error at UndoDeleteCar: {ex.Message}",ex.Message);
             return;
         }
             
@@ -223,7 +223,7 @@ public class Commands
             {
                 Console.WriteLine("Exception : "+ex.Message);
                 choice = 0;
-                Log.Error("Error on RentCar: "+ex.Message);
+                Log.Error("Error on RentCar: {ex.Message}",ex.Message);
             }
 
             if(selectedCar is not null && selectedCar.IsAvailable)
@@ -251,12 +251,12 @@ public class Commands
 
                 inProgress = false;
                 rentedCars.Add((selectedCar, days));
-                Log.Information($"Car with id {selectedCar.Id} rented successfully");
+                Log.Information("Car with id {selectedCar.Id} rented successfully", selectedCar.Id);
             }
             else if(selectedCar is not null && !selectedCar.IsAvailable)
             {
                 Console.WriteLine($"Car {choice} is not available");
-                Log.Warning($"Car with id:{selectedCar.Id} is not available");
+                Log.Warning("Car with id:{selectedCar.Id} is not available", selectedCar.Id);
 
                 if (Inventory.waitingList.Contains(selectedCar))
                 {
@@ -306,7 +306,7 @@ public class Commands
         {
             ToRentCar[0].coche.ChangeStatus(false);
             rentedCars.Add((ToRentCar[0].coche,ToRentCar[0].dias));
-            Log.Information($"Rerent a car with id {ToRentCar[0].coche.Id} via UndoUnrentCar");
+            Log.Information("Rerent a car with id {coche.Id} via UndoUnrentCar", ToRentCar[0].coche.Id);
         }
         else
         {
@@ -374,7 +374,7 @@ public class Commands
             {
                 Console.WriteLine("Exception: "+ex.Message);
                 num = 0;
-                Log.Error("Input error on UnRent "+ex.Message);
+                Log.Error("Input error on UnRent {ex.Message}",ex.Message);
             }
             
             CarRental coche = null;
@@ -426,7 +426,7 @@ public class Commands
     public static void UndoLastAction(int lastAction, List<(CarRental coche, int dias)> rentedCars, CarRental car, 
     List<(CarRental coche, int dias)> deletedRentedCar)
     {
-        Log.Information($"Undo Last action =>{lastAction}");
+        Log.Information("Undo Last action =>{lastAction}", lastAction);
         switch(lastAction)
             {
                 case 0: Console.WriteLine("No action that can be undone"); break;
@@ -437,7 +437,7 @@ public class Commands
             }
 
         Console.WriteLine("Last action undone");
-        Log.Information("Action Undone----------");
+        Log.Information("Action Undone");
     }
 
     public static void ReorderWaitingList()
@@ -502,7 +502,16 @@ public class Commands
             Console.WriteLine("0: Back to main menu");
             Console.WriteLine("Enter your choice:");
 
-            int choice = int.Parse(Console.ReadLine());
+            int choice;
+            try
+            {
+                choice = int.Parse(Console.ReadLine());
+            }catch(Exception ex)
+            {
+                Log.Error("Input error at WaitingListInfo ");
+                choice = 2;
+            }
+            
 
             switch (choice)
             {
@@ -533,7 +542,7 @@ public class Commands
         }
         catch(Exception ex)
         {
-            Log.Warning("Warning input id to fecth "+ex.Message);
+            Log.Warning("Warning input id to fecth {ex.Message}",ex.Message);
             id = 440;
         }
 
@@ -603,13 +612,13 @@ public class Commands
         }
 
         CarRental found = null;
-        Log.Information($"Look up car by id {searchId}");
+        Log.Information("Look up car by id {searchId}", searchId);
         foreach (var car in Inventory.GetInventory())
         {
             if (car.Id == searchId)
             {
                 found = car;
-                Log.Information($"Car with id {searchId} found");
+                Log.Information("Car with id {searchId} found", searchId);
                 break;
             }
         }
@@ -739,6 +748,6 @@ public class Commands
             }
         }
 
-        Log.Information($"Search car by condition. Min {overValue}, Max {underValue}");
+        Log.Information("Search car by condition. Min {overValue}, Max {underValue}", overValue, underValue);
     }
 }
