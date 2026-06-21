@@ -89,5 +89,7 @@ public class Inventory
     }
 
     //List of waiting list
-    public static List<CarRental> waitingList = new();
+    // public static List<CarRental> waitingList = new();
+
+    public static Bin<CarRental> waitingList = new();
 }
