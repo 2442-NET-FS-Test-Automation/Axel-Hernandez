@@ -1,4 +1,5 @@
 using Serilog;
+using System.Text.RegularExpressions;
 
 namespace WeekOne.Domain;
 
@@ -14,6 +15,12 @@ public partial class Commands
     }
 
 
+    //regex validation helper function
+    private static bool IsValidId(string input)
+    {
+        return !string.IsNullOrWhiteSpace(input) &&
+        Regex.IsMatch(input, @"^[A-Za-z]+$");
+    }
 
     
     public static void PrintMenu()
@@ -105,7 +112,17 @@ public partial class Commands
         try
         {
             Console.WriteLine("Enter brand of the car:");
-            string brand = Console.ReadLine();
+            string brand = Console.ReadLine() ?? "";
+
+            if(!IsValidId(brand))
+            {
+                Console.WriteLine("Invalid brand. Use letters only (A-Z)");
+                Console.WriteLine("--------------------------------");
+                return;
+            }
+
+
+
             
             Console.WriteLine("Enter model of the car:");
             string model = Console.ReadLine();
