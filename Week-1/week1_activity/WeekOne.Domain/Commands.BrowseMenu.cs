@@ -56,7 +56,7 @@ public partial class Commands
 
         CarRental found = null;
         Log.Information("Look up car by id {searchId}", searchId);
-        foreach (var car in Inventory.GetInventory())
+        foreach (var car in _repository.GetAll())
         {
             if (car.Id == searchId)
             {
@@ -86,7 +86,7 @@ public partial class Commands
         Console.WriteLine("Distinct brands in inventory");
         Console.WriteLine("--------------------------------");
 
-        int entityCount = Inventory.Count;
+        int entityCount = _repository.Count;
 
         if (entityCount == 0)
         {
@@ -97,7 +97,7 @@ public partial class Commands
 
         List<string> distinctBrands = new List<string>();
 
-        foreach (var car in Inventory.GetInventory())
+        foreach (var car in _repository.GetAll())
         {
             if (!distinctBrands.Contains(car.Brand))
             {
@@ -170,9 +170,13 @@ public partial class Commands
         }
 
         // Filter cars matching both conditions
-        List<CarRental> results = Inventory.GetInventory().FindAll(
-            car => car.DayCost > overValue && car.DayCost < underValue
-        );
+        // List<CarRental> results = Inventory.GetInventory().FindAll(
+        //     car => car.DayCost > overValue && car.DayCost < underValue
+        // );
+
+        List<CarRental> results = _repository.GetAll()
+            .Where(car => car.DayCost > overValue && car.DayCost < underValue)
+            .ToList();
 
         Console.WriteLine($"Cars with day cost over {overValue} and under {underValue}:");
         Console.WriteLine($"Found {results.Count} matching car(s):");

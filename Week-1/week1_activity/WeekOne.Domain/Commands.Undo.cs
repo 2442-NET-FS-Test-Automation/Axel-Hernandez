@@ -26,7 +26,7 @@ public partial class Commands
         if(coche is not null)
         {
             CarRental newCar = new CarRental(coche.Brand, coche.Model, coche.DayCost, coche.RentalPeriod, coche.Status);
-            Inventory.Add(newCar);
+            _repository.Add(newCar);
             Log.Information("Add Car via UndoAddCar");
         }
         else
@@ -42,7 +42,7 @@ public partial class Commands
         
         try
         {
-            Inventory.RemoveLast();
+            _repository.RemoveLast();
         }catch(NoCarFoundException ex)
         {
             Console.WriteLine(ex.Message);

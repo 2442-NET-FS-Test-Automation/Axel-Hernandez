@@ -4,6 +4,18 @@ namespace WeekOne.Domain;
 
 public partial class Commands
 {
+
+
+    private static ICarRepository _repository = null!;
+
+    public static void Configure(ICarRepository repository)
+    {
+        _repository = repository;
+    }
+
+
+
+    
     public static void PrintMenu()
     {
         Console.WriteLine("Menu options:");
@@ -46,13 +58,13 @@ public partial class Commands
 
 
 
-        if (Inventory.GetInventory().Count == 0)
+        if (_repository.GetAll().Count == 0)
         {
             Console.WriteLine(FormatRow("", "", "", "", "", ""));
         }
         else
         {
-            foreach (var car in Inventory.GetInventory())
+            foreach (var car in _repository.GetAll())
             {
                 string avail = car.IsAvailable ? "Y" : "N";
                 Console.WriteLine(FormatRow(
@@ -77,7 +89,7 @@ public partial class Commands
         Console.WriteLine("--------------------------------");
         Console.WriteLine("--------------------------------");
 
-        foreach (var car in Inventory.GetInventory())
+        foreach (var car in _repository.GetAll())
         {
             Console.WriteLine($"{car.Id}) {car.ToString()}");
             Console.WriteLine("--------------------------------");
@@ -109,7 +121,7 @@ public partial class Commands
             CarStatus status = isAvailable ? CarStatus.Available : CarStatus.Rented;
 
             CarRental newCar = new CarRental(brand, model, dayCost, rentalPeriod, status);
-            Inventory.Add(newCar);
+            _repository.Add(newCar);
             Log.Information("Car added successfully");
         }catch(Exception ex)
         {
@@ -139,13 +151,13 @@ public partial class Commands
         }
         
 
-        CarRental coche = Inventory.GetCarById(carToBeDeleted);
+        CarRental coche = _repository.GetById(carToBeDeleted);
 
         if(coche is not null)
         {
             try
             {
-                Inventory.Remove(coche);
+                _repository.Remove(coche);
             }catch(NoCarFoundException ex)
             {
 
@@ -185,7 +197,7 @@ public partial class Commands
             try
             {
                 choice = int.Parse(Console.ReadLine());
-                selectedCar = Inventory.GetCarById(choice);
+                selectedCar = _repository.GetById(choice);
             }catch(Exception ex)
             {
                 Console.WriteLine("Exception : "+ex.Message);
@@ -471,7 +483,7 @@ public partial class Commands
 
         if(foundCars is not null)
         {
-            Inventory.Add(foundCars);
+            _repository.Add(foundCars);
             Log.Information("Car added via fetch api");
         }
         else
