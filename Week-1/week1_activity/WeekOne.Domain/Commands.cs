@@ -65,7 +65,7 @@ public partial class Commands
 
 
 
-        if (_repository.GetAll().Count == 0)
+        if (_repository.Count == 0)
         {
             Console.WriteLine(FormatRow("", "", "", "", "", ""));
         }

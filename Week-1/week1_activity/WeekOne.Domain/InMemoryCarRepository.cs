@@ -12,7 +12,12 @@ public class InMemoryCarRepository : ICarRepository
 
     public int Count => _cars.Count;
 
-    public IReadOnlyList<CarRental> GetAll() => _cars;
+    //public IReadOnlyList<CarRental> GetAll() => _cars;
+    public IEnumerable<CarRental> GetAll()
+    {
+        foreach (CarRental car in _cars)
+            yield return car;
+    }
 
     public CarRental? GetById(int id)
     {
