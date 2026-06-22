@@ -24,6 +24,13 @@ public class Program
             .WriteTo.File("logs/log.txt")
             .CreateLogger();
         Log.Information($"Start of App");
+
+
+
+        //creating repository, inject once via interface
+        ICarRepository carRepository = new InMemoryCarRepository();
+        Commands.Configure(carRepository);
+        
         while (running)
         {            
             Commands.PrintMenu();

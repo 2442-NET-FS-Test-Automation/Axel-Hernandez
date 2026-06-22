@@ -5,67 +5,71 @@ namespace WeekOne.Domain;
 
 public class Inventory
 {
+
+// -------- OLD INVENTORY CODE -------------------------------------------------------------
     //List of cars, with initial items
-    readonly static List<CarRental> _CarsInStock = new()
-    {
-        new CarRental("Honda", "Accord", 40, 3, CarStatus.Available),
-        new CarRental("Toyota", "Camry", 50, 3, CarStatus.Available),
-        new CarRental("Hunday", "Creta", 45, 2, CarStatus.Available),
-        new CarRental("Kia", "Rio", 33, 5, CarStatus.Available)
-    };
+    // readonly static List<CarRental> _CarsInStock = new()
+    // {
+    //     new CarRental("Honda", "Accord", 40, 3, CarStatus.Available),
+    //     new CarRental("Toyota", "Camry", 50, 3, CarStatus.Available),
+    //     new CarRental("Hunday", "Creta", 45, 2, CarStatus.Available),
+    //     new CarRental("Kia", "Rio", 33, 5, CarStatus.Available)
+    // };
 
-    public static int Count => _CarsInStock.Count;
-    public CarRental this[int index] => _CarsInStock[index];
+    // public static int Count => _CarsInStock.Count;
+    // public CarRental this[int index] => _CarsInStock[index];
 
-    public static void Add(CarRental car)
-    {
-        _CarsInStock.Add(car);
-    }
+    // public static void Add(CarRental car)
+    // {
+    //     _CarsInStock.Add(car);
+    // }
     
-    public static bool Remove(CarRental car)
-    {
-        if(GetCarById(car.Id) is null)
-        {
-            throw new NoCarFoundException($"No car found with id {car.Id}");
-        }
-        else
-        {
-            _CarsInStock.Remove(car);
-            return true;
-        }
+    // public static bool Remove(CarRental car)
+    // {
+    //     if(GetCarById(car.Id) is null)
+    //     {
+    //         throw new NoCarFoundException($"No car found with id {car.Id}");
+    //     }
+    //     else
+    //     {
+    //         _CarsInStock.Remove(car);
+    //         return true;
+    //     }
         
-    } 
+    // } 
 
-    public static bool RemoveLast()
-    {
-        if(Count > 0)
-        {
-            _CarsInStock.RemoveAt(Count-1);
-            return true;
-        }
-        else
-        {
-            throw new NoCarFoundException("No Last Car found to be RemoveLast");
-            return false;
-        }
-    }
+    // public static bool RemoveLast()
+    // {
+    //     if(Count > 0)
+    //     {
+    //         _CarsInStock.RemoveAt(Count-1);
+    //         return true;
+    //     }
+    //     else
+    //     {
+    //         throw new NoCarFoundException("No Last Car found to be RemoveLast");
+    //         return false;
+    //     }
+    // }
 
-    public static bool isEmpty => _CarsInStock.Count == 0;
+    // public static bool isEmpty => _CarsInStock.Count == 0;
     
 
-    public static CarRental GetCarById(int id)
-    {
-        foreach(CarRental car in _CarsInStock)
-        {
-            if(car.Id == id)
-            {
-                return car;
-            }
-        }
-        return null;
-    }
+    // public static CarRental GetCarById(int id)
+    // {
+    //     foreach(CarRental car in _CarsInStock)
+    //     {
+    //         if(car.Id == id)
+    //         {
+    //             return car;
+    //         }
+    //     }
+    //     return null;
+    // }
 
-    public static List<CarRental> GetInventory() =>  _CarsInStock;
+    // public static List<CarRental> GetInventory() =>  _CarsInStock;
+
+// -------- OLD INVENTORY CODE --------
 
     public static bool TryMoveWaitingListItem(int fromPosition, int toPosition)
     {
