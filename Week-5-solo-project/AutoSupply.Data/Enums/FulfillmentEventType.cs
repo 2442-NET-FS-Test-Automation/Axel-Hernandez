@@ -1,8 +1,9 @@
 namespace AutoSupply.Data.Enums;
 
-public enum OrderStatus
+public enum FulfillmentEventType
 {
-    Pending, 
+    ProcessingStarted,
+    StockChecked,
     Fulfilled,
     Backordered,
     Failed
