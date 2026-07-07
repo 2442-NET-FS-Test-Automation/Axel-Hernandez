@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace AutoSupply.Data.Entities;
 
 
@@ -8,7 +6,6 @@ public class Product
     public int Id { get; set; }
     public int CategoryId { get; set; }
     public Category Category { get; set; } = default!;
-    // public int InventoryItemId { get; set; }
     public InventoryItem InventoryItem { get; set; } = default!;
     public string Sku { get; set; } = default!;
     public string Name { get; set; } = default!;
