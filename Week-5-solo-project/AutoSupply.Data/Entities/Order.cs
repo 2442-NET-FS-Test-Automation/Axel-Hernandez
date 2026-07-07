@@ -1,3 +1,4 @@
+using System.Xml.XPath;
 using AutoSupply.Data.Enums;
 
 namespace AutoSupply.Data.Entities;
@@ -9,7 +10,7 @@ public class Order
 
     public int CustomerId { get; set; } //FK Customer id
     public Customer Customer { get; set; } = default!;
-
+    public OrderLine OrderLine { get; set; } = default!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
