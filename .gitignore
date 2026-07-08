@@ -1,0 +1,27 @@
+# Ignore everything at the repository root by default.
+/*
+
+# Keep git metadata/config files available.
+!.gitignore
+
+# Track weekly work folders only.
+![Ww]eek*/
+![Ww]eek*/**
+
+# Ignore common OS files anywhere.
+.DS_Store
+**/.DS_Store
+
+# Ignore common .NET build output anywhere inside tracked folders.
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+**/[Ll]ogs/
+**/.vs/
+**/.vscode/
+**/*.user
+**/*.suo
+**/*.rsuser
+
+# Ignore local environment files.
+**/.env

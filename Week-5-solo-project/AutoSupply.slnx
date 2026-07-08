@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AutoSupply.Api/AutoSupply.Api.csproj" />
+  <Project Path="AutoSupply.Data/AutoSupply.Data.csproj" />
+</Solution>
