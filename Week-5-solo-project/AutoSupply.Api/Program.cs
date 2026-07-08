@@ -1,5 +1,22 @@
+using Microsoft.EntityFrameworkCore;
+using AutoSupply.Data.Entities;
+using AutoSupply.Data;
+
+
 var builder = WebApplication.CreateBuilder(args);
+
+var conn_string = "Server=localhost,1434;Database=AutoSupplyDb;User Id=sa;Password=TestPass1!;TrustServerCertificate=true";
+
+builder.Services.AddDbContext<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string),
+        ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+builder.Services.AddDbContextFactory<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string));
+
+
 var app = builder.Build();
+
+
+
+
 
 app.MapGet("/", () => "Testing another thing");
 
