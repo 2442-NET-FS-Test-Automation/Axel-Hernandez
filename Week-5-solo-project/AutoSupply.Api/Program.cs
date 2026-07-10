@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AutoSupply.Data.Entities;
+using AutoSupply.Data.Enums;
 using AutoSupply.Data;
 using AutoSupply.Api.Seed;
 using AutoSupply.Api.Fulfillment;
@@ -49,17 +50,6 @@ app.MapPost("/seed", async (ISeeder seeder, CancellationToken ct) => {
 //inventory endpoint
 app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) => {
     var inventory = await db.InventoryItems
-        // .Include(i => i.Product)
-        // .ThenInclude(i => i.Category)
-        // .Select(i => new {
-        //     Sku =i.Product.Sku,
-        //     ProductName = i.Product.Name,
-        //     CategoryName = i.Product.Category.CategoryName,
-        //     QuantityOnHand = i.QuantityOnHand,
-        //     Price = i.Product.Price
-        // })
-        // .ToListAsync(ct);
-
         .Select(i => new {
             Sku =i.Product.Sku,
             ProductName = i.Product.Name,
@@ -130,9 +120,25 @@ app.MapPost("/orders/burst", async (BurstOrderRequest request, AutoSupplyDbConte
 
 
 
-app.MapGet("/orders", () =>
+app.MapGet("/orders", async (AutoSupplyDbContext db, CancellationToken ct) =>
 {
-    return "All current orders";
+    var orders = await db.Orders
+        .OrderByDescending(o => o.CreatedAt)
+        .Select(o => new {
+            OrderId = o.Id,
+            CustomerName = $"{o.Customer.FirstName} {o.Customer.LastName}",
+            Priority = o.Priority.ToString(),
+            Status = o.Status.ToString(),
+            CreatedAt = o.CreatedAt,
+            Lines = o.OrderLines.Select(ol => new {
+                Sku = ol.Product.Sku,
+                ProductName = ol.Product.Name,
+                Quantity = ol.Quantity
+            })
+
+        }).ToListAsync(ct);
+
+        return Results.Ok(orders);
 });
 
 
