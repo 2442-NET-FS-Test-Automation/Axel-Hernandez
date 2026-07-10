@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data;
 using AutoSupply.Api.Seed;
+using AutoSupply.Api.Fulfillment;
+using AutoSupply.Api.Contracts;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +15,11 @@ builder.Services.AddDbContext<AutoSupplyDbContext>(options => options.UseSqlServ
 builder.Services.AddDbContextFactory<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string));
 
 
-//DI interfaces
+// /Seed -----------------------------
 builder.Services.AddScoped<ISeeder, Seeder>();
+
+// /Fulfillment -----------------------------
+builder.Services.AddScoped<OrderFactory>();
 
 
 var app = builder.Build();
@@ -71,6 +76,60 @@ app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) =>
 
 
 
+app.MapPost("/orders/burst", async (BurstOrderRequest request, AutoSupplyDbContext db, OrderFactory orderFactory, CancellationToken ct) =>
+{
+    if(request.Count <= 0)
+    {
+        return Results.BadRequest("Count must be greater than zero");
+    }
+
+    var customerIds = await db.Customers
+        .Select(c => c.Id)
+        .ToListAsync(ct);
+    
+    var productIds = await db.Products
+        .Select(p => p.Id)
+        .ToListAsync(ct);
+        
+    if(customerIds.Count == 0 || productIds.Count == 0)
+    {
+        return Results.BadRequest("Seed the catalog before creating orders");
+    }
+
+    var orders = new List<Order>(request.Count);
+
+    for(var i = 0; i < request.Count; i++)
+    {
+        var customerId = customerIds[i % customerIds.Count];
+        var productId = productIds[i % productIds.Count];
+
+        var order = orderFactory.CreateOrder(
+            customerId,
+            productId,
+            quantity: 1,
+            expedited: request.Expedited
+        );
+
+        orders.Add(order);
+    }
+
+    db.Orders.AddRange(orders);
+    await db.SaveChangesAsync(ct);
+
+    return Results.Accepted($"/orders", new
+    {
+        message = "Orders created and queued for fulfillment",
+        OrdersCreated = orders.Count,
+        request.Expedited
+    });
+
+
+});
+
+
+
+
+
 app.MapGet("/orders", () =>
 {
     return "All current orders";
@@ -83,10 +142,7 @@ app.MapGet("/orders/{id}", (int id) =>
 });
 
 
-app.MapPost("/orders/burst", () =>
-{
-    return "Burst of many orders at once";
-});
+
 
 
 app.MapGet("/reports", () =>
