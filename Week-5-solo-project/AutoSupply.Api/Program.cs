@@ -158,7 +158,12 @@ app.MapGet("/orders/{id}", async (int id, AutoSupplyDbContext db, CancellationTo
             Quantity = ol.Quantity
         })
 
-    }).ToListAsync();
+    }).FirstOrDefaultAsync(ct);
+
+    if(orderById is null)
+    {
+        return Results.NotFound();
+    }
 
 
     return Results.Ok(orderById);
