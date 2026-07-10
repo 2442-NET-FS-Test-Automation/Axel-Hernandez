@@ -142,9 +142,26 @@ app.MapGet("/orders", async (AutoSupplyDbContext db, CancellationToken ct) =>
 });
 
 
-app.MapGet("/orders/{id}", (int id) =>
+app.MapGet("/orders/{id}", async (int id, AutoSupplyDbContext db, CancellationToken ct) =>
 {
-   return $"get order by id: {id}"; 
+   var orderById = await db.Orders
+    .Where(o => o.Id == id)
+    .Select(o => new {
+        OrderId = o.Id,
+        CustomerName = $"{o.Customer.FirstName} {o.Customer.LastName}",
+        Priority = o.Priority.ToString(),
+        Status = o.Status.ToString(),
+        CreatedAt = o.CreatedAt,
+        Lines = o.OrderLines.Select(ol => new {
+            Sku = ol.Product.Sku,
+            ProductName = ol.Product.Name,
+            Quantity = ol.Quantity
+        })
+
+    }).ToListAsync();
+
+
+    return Results.Ok(orderById);
 });
 
 
