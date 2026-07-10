@@ -41,72 +41,31 @@ app.MapPost("/seed", async (ISeeder seeder, CancellationToken ct) => {
 
 
 
+//inventory endpoint
+app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) => {
+    var inventory = await db.InventoryItems
+        // .Include(i => i.Product)
+        // .ThenInclude(i => i.Category)
+        // .Select(i => new {
+        //     Sku =i.Product.Sku,
+        //     ProductName = i.Product.Name,
+        //     CategoryName = i.Product.Category.CategoryName,
+        //     QuantityOnHand = i.QuantityOnHand,
+        //     Price = i.Product.Price
+        // })
+        // .ToListAsync(ct);
 
+        .Select(i => new {
+            Sku =i.Product.Sku,
+            ProductName = i.Product.Name,
+            CategoryName = i.Product.Category.CategoryName,
+            QuantityOnHand = i.QuantityOnHand,
+            Price = i.Product.Price
+        })
+        .ToListAsync(ct);
 
-
-// ---- project endpoints templates ----
-// app.MapPost("/seed/categories", async (AutoSupplyDbContext db) =>
-// {
-//     //create products, customers and starting inventory
-//     var categories = new List<Category>
-//     {
-//         new Category { CategoryName = "Engine Parts" },
-//         new Category { CategoryName = "Brakes" },
-//         new Category { CategoryName = "Tires" },
-//         new Category { CategoryName = "Fluids" }
-//     };
-
-//     db.Categories.AddRange(categories);
-//     await db.SaveChangesAsync();
-
-//     return Results.Ok(new
-//     {
-//         message = "Seed completed",
-//         categories = categories.Count
-//     });
-// });
-
-
-//testing seeding products
-// app.MapPost("/seed/products", async (AutoSupplyDbContext db) => 
-// {
-
-//     var brakes = await db.Categories.SingleOrDefaultAsync(c => c.CategoryName == "Brakes");
-
-//     var products = new List<Product>
-//     {
-//         new Product { 
-//             Sku  = "BRAKE-PAD-001", 
-//             Name = "Ceramic brake pad set", Price = 59.99m, 
-//             Category = brakes, 
-//             InventoryItem = new InventoryItem { QuantityOnHand = 13 }
-//         },
-//         new Product { 
-//             Sku  = "BRAKE-PAD-002", 
-//             Name = "Normal brake pad set", Price = 39.99m, 
-//             Category = brakes, 
-//             InventoryItem = new InventoryItem { QuantityOnHand = 13 }
-//         },
-//         new Product { 
-//             Sku  = "BRAKE-PAD-003", 
-//             Name = "Carbon brake pad set", Price = 109.99m, 
-//             Category = brakes, 
-//             InventoryItem = new InventoryItem { QuantityOnHand = 13 }
-//         },
-//     };
-
-//     db.Products.AddRange(products);
-//     await db.SaveChangesAsync();
-
-//     return Results.Ok(new
-//     {
-//         message = "Seed products completed",
-//         products = products.Count
-//     });
-// });
-
-
-
+        return Results.Ok(inventory);
+});
 
 
 
@@ -127,12 +86,6 @@ app.MapGet("/orders/{id}", (int id) =>
 app.MapPost("/orders/burst", () =>
 {
     return "Burst of many orders at once";
-});
-
-
-app.MapGet("/inventory", () =>
-{
-    return "Inventory data: { data, data, data }";
 });
 
 
