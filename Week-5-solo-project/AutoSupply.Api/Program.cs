@@ -21,6 +21,7 @@ builder.Services.AddScoped<ISeeder, Seeder>();
 
 // /Fulfillment -----------------------------
 builder.Services.AddScoped<OrderFactory>();
+builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
 
 
 var app = builder.Build();
@@ -168,6 +169,31 @@ app.MapGet("/orders/{id}", async (int id, AutoSupplyDbContext db, CancellationTo
 
     return Results.Ok(orderById);
 });
+
+
+//order fulfill
+app.MapPost("/orders/{id}/fulfill", async (int id, IFulfillmentService fulfillmentService, CancellationToken ct) => {
+    await fulfillmentService.FulfillOrderAsync(id, ct);
+
+    return Results.Accepted($"/orders/{id}");
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
