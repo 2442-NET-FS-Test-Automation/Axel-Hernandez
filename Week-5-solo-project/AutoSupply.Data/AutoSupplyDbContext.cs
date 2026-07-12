@@ -81,6 +81,8 @@ public class AutoSupplyDbContext : DbContext
                 .HasForeignKey<InventoryItem>(i => i.ProductId);
             inventoryItem.Property(i => i.QuantityOnHand)
                 .IsRequired();
+            inventoryItem.Property(i => i.RowVersion)
+                .IsRowVersion();
         });
 
 
