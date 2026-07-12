@@ -103,7 +103,7 @@ app.MapPost("/orders/burst", async (BurstOrderRequest request, AutoSupplyDbConte
         orders.Add(order);
     }
 
-    db.Orders.AddRange(orders);
+    db.Orders.AddRange(orders); //add the whole list of orders into dbset Orders
     await db.SaveChangesAsync(ct);
 
     return Results.Accepted($"/orders", new
