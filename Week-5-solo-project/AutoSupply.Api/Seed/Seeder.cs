@@ -1,16 +1,19 @@
 using AutoSupply.Data; //brings data models in here
 using AutoSupply.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using AutoSupply.Api.Fulfillment;
 
 namespace AutoSupply.Api.Seed;
 
 public class Seeder : ISeeder
 {
     private readonly IDbContextFactory<AutoSupplyDbContext> _factory; //factory type variable hold dbcontext to create contexts based on this
+    private readonly OrderFactory _orderFactory;
 
-    public Seeder(IDbContextFactory<AutoSupplyDbContext> factory) //method to seed things, based on dbcontext factory
+    public Seeder(IDbContextFactory<AutoSupplyDbContext> factory, OrderFactory orderFactory) //method to seed things, based on dbcontext factory
     {
         _factory = factory;
+        _orderFactory = orderFactory;
     }
 
 
@@ -134,7 +137,78 @@ public class Seeder : ISeeder
     }
 
 
+    public async Task<IReadOnlyList<int>> ResetAndCreateOrderAsync(int number, CancellationToken ct)
+    {
+        await using var db = await _factory.CreateDbContextAsync(ct);
 
+        var starting = new Dictionary<string, int>
+        {
+            ["BRK-001"] = 20,
+            ["FLU-001"] = 15,
+            ["ENG-001"] = 4,
+            ["TIR-001"] = 10
+        };
+
+
+        var items = await db.InventoryItems
+            .Include(item => item.Product)
+            .ToListAsync(ct);
+
+        foreach(var item in items)
+        {
+            if(starting.TryGetValue(item.Product.Sku, out var qty))
+            {
+                item.QuantityOnHand = qty;
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+
+
+        var customerIds = await db.Customers
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+
+        var productIds = await db.Products
+            .Select(p => p.Id)
+            .ToListAsync(ct);
+
+        var ids = new List<int>(number);
+
+        for(var i = 0; i < number; i++)
+        {
+            var customerId = customerIds[i % customerIds.Count];
+            var productId = productIds[i % productIds.Count];
+
+            var order = _orderFactory.CreateOrder(
+                customerId,
+                productId,
+                quantity: 1,
+                expedited: i % 3 == 0
+            );
+
+            db.Orders.Add(order);
+            await db.SaveChangesAsync(ct);
+            ids.Add(order.Id);
+        }
+
+        return ids;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // --------------------- Helper functions ---------------------
     //Seed category - helper function
     private static async Task<(Category Category, bool Created)> GetOrCreateCategoryAsync(
         AutoSupplyDbContext db, string categoryName, CancellationToken ct
@@ -160,9 +234,7 @@ public class Seeder : ISeeder
         return (category, true);
     }
 
-
-
-
+    
     //seed customers - helper function
     private static async Task<(Customer Customer, bool Created)> GetOrCreateCustomerAsync(
         AutoSupplyDbContext db,

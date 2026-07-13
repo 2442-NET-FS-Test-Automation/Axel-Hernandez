@@ -4,6 +4,8 @@ public interface ISeeder
 {
     Task<SeedResult> SeedCatalogAsync(CancellationToken ct = default);
 
+    Task<IReadOnlyList<int>> ResetAndCreateOrderAsync(int number, CancellationToken ct = default);
+
 }
 
 

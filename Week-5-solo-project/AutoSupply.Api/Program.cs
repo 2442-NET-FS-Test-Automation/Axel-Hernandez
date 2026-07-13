@@ -1,4 +1,5 @@
 using Serilog;
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data.Enums;
@@ -246,9 +247,37 @@ app.MapGet("/reports/completed-orders", async (AutoSupplyDbContext db, Cancellat
 });
 
 
-app.MapPost("/benchmark", () =>
+app.MapPost("/benchmark", async (
+    BenchmarkRequest request,
+    ISeeder seeder,
+    IFulfillmentService fulfillmentService,
+    CancellationToken ct
+) =>
 {
-    return "Benchmark of performance";
+    //Sequential benchmark
+    var ids1 = await seeder.ResetAndCreateOrderAsync(request.Number, ct);
+
+    var sw1 = Stopwatch.StartNew();
+    foreach(var id in ids1)
+    {
+        await fulfillmentService.FulfillOrderAsync(id, ct);
+    }
+    sw1.Stop();
+
+
+    //Burst / Concurrent benchmark
+    var ids2 = await seeder.ResetAndCreateOrderAsync(request.Number, ct);
+
+    var sw2 = Stopwatch.StartNew();
+    await fulfillmentService.FulfillBurstAsync(ids2, ct);
+    sw2.Stop();
+
+
+    return Results.Ok(new {
+        sequentialTime = sw1.ElapsedMilliseconds,
+        concurrentTime = sw2.ElapsedMilliseconds,
+        speedUp = $"Speed up factor: {(double)sw1.ElapsedMilliseconds / sw2.ElapsedMilliseconds}"
+    });
 });
 
 
