@@ -225,15 +225,15 @@ app.MapGet("/orders/{id}", async (int id, AutoSupplyDbContext db, CancellationTo
 
 
 
-app.MapGet("/reports/completed-orders", (AutoSupplyDbContext db) =>
+app.MapGet("/reports/completed-orders", async (AutoSupplyDbContext db, CancellationToken ct) =>
 {
     // divide later into these endpoints for reports:
     // /reports/top-products
     // /reports/top-customers
     // /reports/fulfillment-rate
-    var completedOrders = db.Orders
+    var completedOrders = await db.Orders
         .Where(order => order.Status == OrderStatus.Fulfilled)
-        .ToList();
+        .ToListAsync(ct);
 
     int count = completedOrders.Count;
 
