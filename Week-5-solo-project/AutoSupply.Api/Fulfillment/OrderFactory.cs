@@ -15,9 +15,10 @@ public class OrderFactory
         return new Order
         {
             CustomerId = customerId,
-            Priority = expedited ? Priority.Expedited : Priority.Standard,
-            Status = OrderStatus.Pending,
             CreatedAt = DateTime.UtcNow,
+            CompletedAt = null,
+            Status = OrderStatus.Pending,
+            Priority = expedited ? Priority.Expedited : Priority.Standard,
             OrderLines = 
             {
                 new OrderLine
