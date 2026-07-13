@@ -1,3 +1,4 @@
+using Serilog;
 using Microsoft.EntityFrameworkCore;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data.Enums;
@@ -7,9 +8,14 @@ using AutoSupply.Api.Fulfillment;
 using AutoSupply.Api.Contracts;
 
 
-var builder = WebApplication.CreateBuilder(args);
 
+var builder = WebApplication.CreateBuilder(args);
 var conn_string = "Server=localhost,1434;Database=AutoSupplyDb;User Id=sa;Password=TestPass1!;TrustServerCertificate=true";
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/fulfillment-log.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 builder.Services.AddDbContext<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string),
         ServiceLifetime.Scoped, ServiceLifetime.Singleton);
@@ -22,6 +28,7 @@ builder.Services.AddScoped<ISeeder, Seeder>();
 // /Fulfillment -----------------------------
 builder.Services.AddScoped<OrderFactory>();
 builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
+builder.Services.AddScoped<BurstPlanner>();
 
 
 var app = builder.Build();
@@ -80,7 +87,13 @@ app.MapPost("/orders/fulfill/{orderId}", async (int orderId, IFulfillmentService
 
 
 
-app.MapPost("/orders/burst", async (BurstOrderRequest request, AutoSupplyDbContext db, OrderFactory orderFactory, CancellationToken ct) =>
+app.MapPost("/orders/burst", async (
+    BurstOrderRequest request, 
+    IServiceScopeFactory scopes, 
+    IHostApplicationLifetime lifetime,
+    AutoSupplyDbContext db, 
+    OrderFactory orderFactory, 
+    CancellationToken ct) =>
 {
     if(request.Count <= 0)
     {
@@ -119,6 +132,31 @@ app.MapPost("/orders/burst", async (BurstOrderRequest request, AutoSupplyDbConte
 
     db.Orders.AddRange(orders); //add the whole list of orders into dbset Orders
     await db.SaveChangesAsync(ct);
+
+
+    // --- create fulfillment plan process ---
+    var ids = orders.Select(o => o.Id).ToList();
+    var appStopping = lifetime.ApplicationStopping;
+
+
+
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IFulfillmentService>();
+            await service.FulfillBurstAsync(ids, appStopping);
+        }
+        catch(Exception ex)
+        {
+            
+            //LOG SERILOG PENDING...
+            Log.Error(ex, "Burst fulfillment process failed");
+        }
+    }, appStopping);
+
+
 
     return Results.Accepted($"/orders", new
     {

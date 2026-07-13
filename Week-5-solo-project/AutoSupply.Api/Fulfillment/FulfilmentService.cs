@@ -1,3 +1,4 @@
+using Serilog;
 using AutoSupply.Api.Fulfillment;
 using AutoSupply.Data;
 using AutoSupply.Data.Entities;
@@ -9,12 +10,13 @@ namespace AutoSupply.Api.Fulfillment;
 
 public class FulfillmentService : IFulfillmentService 
 {
-    public readonly IDbContextFactory<AutoSupplyDbContext> _factory = default!;
+    private readonly IDbContextFactory<AutoSupplyDbContext> _factory = default!;
+    private readonly BurstPlanner _planner;
 
-
-    public FulfillmentService(IDbContextFactory<AutoSupplyDbContext> factory)
+    public FulfillmentService(IDbContextFactory<AutoSupplyDbContext> factory, BurstPlanner planner)
     {
         _factory = factory;
+        _planner = planner;
     }
 
 
@@ -62,6 +64,7 @@ public class FulfillmentService : IFulfillmentService
             await db.SaveChangesAsync(ct);
 
             //LOG SERILOG PENDING..
+            Log.Warning("Backordered order {orderId} due to insufficiente stock", orderId);
             return FulfillmentResult.Backordered;
         }
 
@@ -83,16 +86,60 @@ public class FulfillmentService : IFulfillmentService
             staleOrder.Status = OrderStatus.Backordered;
 
             await db.SaveChangesAsync(ct);
+            Log.Warning("Backordered order {orderId} due to concurrency error", orderId);
             return FulfillmentResult.Backordered;
         }
 
         
 
         //LOG SERILOG PENDING..
+        Log.Information("Order {orderId} has been fulfilled", orderId);
         return FulfillmentResult.Fulfilled;
 
 
     }
+
+    public async Task<BurstResult> FulfillBurstAsync(IEnumerable<int> orderIds, CancellationToken ct)
+    {
+        //Getting all order ids
+        List<int> idList = orderIds.ToList();
+
+        //List to store ordeds to be fulfilled
+        List<Order> orders = new();
+
+
+        //NOTE - THIS DB CONTEXT WILL LEAVE ONLY HERE, WITHIN THE CURLY BRACES, THIS IS "BLOCK FORM" of using
+        await using (var db = await _factory.CreateDbContextAsync(ct))
+        {
+            orders = await db.Orders.Where(o => idList.Contains(o.Id)).ToListAsync();
+        }
+
+
+
+        var planned = _planner.OrderByPriority(orders);
+
+        var tasks = planned.Select(id => FulfillOrderAsync(id, ct));
+
+
+        var results = await Task.WhenAll(tasks);
+
+
+        return new BurstResult(
+            Fulfilled: results.Count(res => res == FulfillmentResult.Fulfilled),
+            Backordered: results.Count(res => res == FulfillmentResult.Backordered)
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -113,6 +160,7 @@ public class FulfillmentService : IFulfillmentService
             catch(DbUpdateConcurrencyException ex)
             {
                 //LOG SERILOG PENDING...
+                Log.Error(ex, "Database concurrency error while saving changes");
                 //attempt retry
                 foreach(var entry in ex.Entries)
                 {
