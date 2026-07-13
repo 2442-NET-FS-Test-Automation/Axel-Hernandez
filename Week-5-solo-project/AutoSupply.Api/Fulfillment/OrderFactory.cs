@@ -16,6 +16,7 @@ public class OrderFactory
         {
             CustomerId = customerId,
             CreatedAt = DateTime.UtcNow,
+            // CompletedAt = DateTime.UtcNow,
             CompletedAt = null,
             Status = OrderStatus.Pending,
             Priority = expedited ? Priority.Expedited : Priority.Standard,
