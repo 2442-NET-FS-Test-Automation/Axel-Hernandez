@@ -76,17 +76,65 @@ public class FulfillmentService : IFulfillmentService
         
 
         //Adding retry save method
+        if(!await SaveWithRetryAsync(db, requested, ct))
+        {
+            db.ChangeTracker.Clear();
+            Order staleOrder = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+            staleOrder.Status = OrderStatus.Backordered;
 
+            await db.SaveChangesAsync(ct);
+            return FulfillmentResult.Backordered;
+        }
 
-
-
-
-
-        await db.SaveChangesAsync(ct);
+        
 
         //LOG SERILOG PENDING..
         return FulfillmentResult.Fulfilled;
 
 
+    }
+
+
+
+
+    // Retry and save method
+    private static async Task<bool> SaveWithRetryAsync(
+        AutoSupplyDbContext db,
+        IReadOnlyDictionary<int, int> requestedByProductId,
+        CancellationToken ct
+    )
+    {
+        while(true)
+        {
+            try{
+                await db.SaveChangesAsync(ct);
+                return true;
+            }
+            catch(DbUpdateConcurrencyException ex)
+            {
+                //LOG SERILOG PENDING...
+                //attempt retry
+                foreach(var entry in ex.Entries)
+                {
+                    var current = await entry.GetDatabaseValuesAsync(ct);
+
+                    if(current == null) return false;
+
+                    entry.OriginalValues.SetValues(current);
+
+
+                    if(entry.Entity is InventoryItem inventory)
+                    {
+                        int freshValue = current.GetValue<int>(nameof (InventoryItem.QuantityOnHand));
+
+                        int desiredAmount = requestedByProductId[inventory.ProductId];
+
+
+                        if(freshValue < desiredAmount) return false;
+                        inventory.QuantityOnHand = freshValue - desiredAmount;
+                    }
+                }
+            }
+        }
     }
 }
