@@ -235,8 +235,13 @@ app.MapGet("/reports/completed-orders", (AutoSupplyDbContext db) =>
         .Where(order => order.Status == OrderStatus.Fulfilled)
         .ToList();
 
+    int count = completedOrders.Count;
 
-    return Results.Ok(completedOrders);
+
+    return Results.Ok(new {
+        message = "Completed orders:",
+        count
+    });
 
 });
 
