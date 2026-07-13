@@ -21,6 +21,7 @@ builder.Services.AddScoped<ISeeder, Seeder>();
 
 // /Fulfillment -----------------------------
 builder.Services.AddScoped<OrderFactory>();
+builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
 
 
 var app = builder.Build();
@@ -60,6 +61,19 @@ app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) =>
         .ToListAsync(ct);
 
         return Results.Ok(inventory);
+});
+
+
+
+
+
+app.MapPost("/orders/fulfill/{orderId}", async (int orderId, IFulfillmentService fulfillmentService, CancellationToken ct) =>
+{
+    var result = await fulfillmentService.FulfillOrderAsync(orderId, ct);
+    return Results.Ok(new {
+        message = result == FulfillmentResult.Fulfilled ? "Order fulfilled" : "Order backordered",
+        result = result.ToString()
+    });
 });
 
 
