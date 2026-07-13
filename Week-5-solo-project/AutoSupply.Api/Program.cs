@@ -225,14 +225,19 @@ app.MapGet("/orders/{id}", async (int id, AutoSupplyDbContext db, CancellationTo
 
 
 
-app.MapGet("/reports", () =>
+app.MapGet("/reports/completed-orders", (AutoSupplyDbContext db) =>
 {
     // divide later into these endpoints for reports:
     // /reports/top-products
     // /reports/top-customers
     // /reports/fulfillment-rate
+    var completedOrders = db.Orders
+        .Where(order => order.Status == OrderStatus.Fulfilled)
+        .ToList();
 
-    return "top products: { data } || top customers: { data } || fulfillment rate: { data }";
+
+    return Results.Ok(completedOrders);
+
 });
 
 
