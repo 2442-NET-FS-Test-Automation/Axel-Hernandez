@@ -6,6 +6,8 @@ public interface IFulfillmentService
 
 
     Task<BurstResult> FulfillBurstAsync(IEnumerable<int> orderIds, CancellationToken ct);
+
+    int ResolveProductId(string sku);
 }
 
 

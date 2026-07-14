@@ -301,6 +301,31 @@ app.MapGet("/reports/rank-of/{units:int}", async (int units, AutoSupplyDbContext
 
 
 
+//--- Concurrent dictionary lookup endpoint ---
+app.MapGet("/products/by-sku/{sku}", (string sku, IFulfillmentService fulfillmentService) => {
+
+    try{
+        var productId = fulfillmentService.ResolveProductId(sku);
+
+        return Results.Ok(new {
+            sku,
+            productId
+        });
+    }
+    catch(KeyNotFoundException)
+    {
+        return Results.NotFound(new {
+            error = $"Product not found by sku: {sku}"
+        });
+    }
+
+
+
+});
+
+
+
+
 
 
 

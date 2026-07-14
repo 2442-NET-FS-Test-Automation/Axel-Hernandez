@@ -4,6 +4,7 @@ using AutoSupply.Data;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace AutoSupply.Api.Fulfillment;
 
@@ -12,11 +13,31 @@ public class FulfillmentService : IFulfillmentService
 {
     private readonly IDbContextFactory<AutoSupplyDbContext> _factory = default!;
     private readonly BurstPlanner _planner;
+    private readonly ConcurrentDictionary<string, int> _skuToProductId;
 
     public FulfillmentService(IDbContextFactory<AutoSupplyDbContext> factory, BurstPlanner planner)
     {
         _factory = factory;
         _planner = planner;
+
+        //storing skus and prod ids
+        using var db = _factory.CreateDbContext();
+        _skuToProductId = new ConcurrentDictionary<string, int>(
+            db.Products.ToDictionary(p => p.Sku, p => p.Id)
+        );
+    }
+
+
+
+    public int ResolveProductId(string sku)
+    {
+        if(_skuToProductId.TryGetValue(sku, out int productId))
+        {
+            return productId;
+        }
+
+
+        throw new KeyNotFoundException($"Unknown SKU: {sku}");
     }
 
 
