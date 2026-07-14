@@ -247,6 +247,27 @@ app.MapGet("/reports/completed-orders", async (AutoSupplyDbContext db, Cancellat
 });
 
 
+app.MapGet("/reports/top-products", async (AutoSupplyDbContext db, CancellationToken ct) => {
+    var ranked = await db.FulfillmentEvents
+        .Where(e => e.Type == FulfillmentEventType.Fulfilled)
+        .Join(
+            db.OrderLines,
+            e => e.OrderId,
+            line => line.OrderId,
+            (e, line) => line)
+        .GroupBy(line => line.ProductId)
+        .Select(g => new
+        {
+            ProductId = g.Key,
+            Units = g.Sum(line => line.Quantity)
+        })
+        .OrderByDescending(row => row.Units)
+        .ToListAsync(ct);
+
+        return Results.Ok(ranked);
+});
+
+
 app.MapPost("/benchmark", async (
     BenchmarkRequest request,
     ISeeder seeder,
