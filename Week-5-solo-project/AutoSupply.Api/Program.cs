@@ -302,7 +302,7 @@ app.MapGet("/reports/rank-of/{units:int}", async (int units, AutoSupplyDbContext
 
 
 //--- Concurrent dictionary lookup endpoint ---
-app.MapGet("/products/by-sku/{sku}", async (string sku, IFulfillmentService fulfillmentService) => {
+app.MapGet("/products/by-sku/{sku}", (string sku, IFulfillmentService fulfillmentService) => {
 
     try{
         var productId = fulfillmentService.ResolveProductId(sku);
