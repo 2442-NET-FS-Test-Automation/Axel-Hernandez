@@ -72,6 +72,7 @@ Starting stock after seed: BRK-001=20, FLU-001=15, ENG-001=4, TIR-001=10.
 | EF Core model, Fluent API, indexes | `AutoSupply.Data/AutoSupplyDbContext.cs` + entities |
 | Migrations + seed | `AutoSupply.Data/Migrations/`, `AutoSupply.Api/Seed/Seeder.cs` |
 | `RowVersion` concurrency token | `InventoryItem.RowVersion` + `.IsRowVersion()` |
+| Repository behind an interface | `IOrderRepository` / `OrderRepository` in `AutoSupply.Data/Repositories/` |
 | Factory | `AutoSupply.Api/Fulfillment/OrderFactory.cs` |
 | Concurrent burst + per-order context | `FulfillmentService.FulfillBurstAsync` / `FulfillOrderAsync` |
 | Background burst (`Task.Run` + new scope) | `POST /orders/burst` in `Program.cs` |
@@ -83,6 +84,8 @@ Starting stock after seed: BRK-001=20, FLU-001=15, ENG-001=4, TIR-001=10.
 | Sequential vs concurrent benchmark | `POST /benchmark` + `Seeder.ResetAndCreateOrderAsync` |
 | Serilog structured templates | `Program.cs` startup + `FulfillmentService` |
 | `CancellationToken` on shutdown | `IHostApplicationLifetime.ApplicationStopping` passed into background burst |
+
+**Repository usage:** `GET /inventory` calls `GetInventoryAsync`; `POST /orders/burst` calls `GetCustomerAndProductIdsAsync` so those callers depend on `IOrderRepository`, not EF types. Fulfillment still uses `IDbContextFactory` per order for the concurrency / `RowVersion` path.
 
 ## Big-O (structures in use)
 
@@ -97,9 +100,10 @@ Starting stock after seed: BRK-001=20, FLU-001=15, ENG-001=4, TIR-001=10.
 ## Project layout
 
 - `AutoSupply.Api` — endpoints, seed, fulfillment, exceptions
-- `AutoSupply.Data` — entities, DbContext, migrations
+- `AutoSupply.Data` — entities, DbContext, migrations, repositories (`IOrderRepository` / `OrderRepository`)
 
-## Remaining Target polish
+## Optional polish
 
-- **Repository behind an interface** — persistence still uses `DbContext` / factory directly in places (Target checkbox).
-- Optional: `Log.CloseAndFlush` on shutdown; mixed expedited flag in a single burst for a clearer PriorityQueue live demo.
+- `Log.CloseAndFlush` on shutdown
+- Mixed expedited flag in a single burst for a clearer PriorityQueue live demo
+- Optional `AddOrdersAsync` on the repository so burst can drop its remaining `DbContext` inject for `SaveChanges`

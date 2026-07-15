@@ -395,4 +395,5 @@ app.MapPost("/benchmark", async (
 
 
 app.Run();
+Log.CloseAndFlush();
 
