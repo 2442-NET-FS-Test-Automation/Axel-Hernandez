@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data.Enums;
 using AutoSupply.Data;
+using AutoSupply.Api.Exceptions;
 using AutoSupply.Api.Seed;
 using AutoSupply.Api.Fulfillment;
 using AutoSupply.Api.Contracts;
@@ -31,6 +32,9 @@ builder.Services.AddScoped<OrderFactory>();
 builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
 builder.Services.AddScoped<BurstPlanner>();
 
+//Repositories -----------------------------
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
 
 var app = builder.Build();
 
@@ -57,18 +61,32 @@ app.MapPost("/seed", async (ISeeder seeder, CancellationToken ct) => {
 
 
 //inventory endpoint
-app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) => {
-    var inventory = await db.InventoryItems
-        .Select(i => new {
-            Sku =i.Product.Sku,
-            ProductName = i.Product.Name,
-            CategoryName = i.Product.Category.CategoryName,
-            QuantityOnHand = i.QuantityOnHand,
-            Price = i.Product.Price
-        })
-        .ToListAsync(ct);
+// app.MapGet("/inventory", async (AutoSupplyDbContext db, CancellationToken ct) => {
+//     var inventory = await db.InventoryItems
+//         .Select(i => new {
+//             Sku =i.Product.Sku,
+//             ProductName = i.Product.Name,
+//             CategoryName = i.Product.Category.CategoryName,
+//             QuantityOnHand = i.QuantityOnHand,
+//             Price = i.Product.Price
+//         })
+//         .ToListAsync(ct);
 
-        return Results.Ok(inventory);
+//         return Results.Ok(inventory);
+// });
+
+
+app.MapGet("/inventory", async (IOrderRepository orderRepository, CancellationToken ct) => {
+    var inventory = await orderRepository.GetInventoryAsync(ct);
+        
+        return Results.Ok(new {
+            inventoryItems = inventory.Select(item => new {
+                item.ProductId,
+                item.Sku,
+                item.Name,
+                item.QuantityOnHand
+            })
+        });
 });
 
 
@@ -92,7 +110,8 @@ app.MapPost("/orders/burst", async (
     BurstOrderRequest request, 
     IServiceScopeFactory scopes, 
     IHostApplicationLifetime lifetime,
-    AutoSupplyDbContext db, 
+    AutoSupplyDbContext db,
+    IOrderRepository orderRepository, 
     OrderFactory orderFactory, 
     CancellationToken ct) =>
 {
@@ -101,13 +120,18 @@ app.MapPost("/orders/burst", async (
         return Results.BadRequest("Count must be greater than zero");
     }
 
-    var customerIds = await db.Customers
-        .Select(c => c.Id)
-        .ToListAsync(ct);
+    var (customerIds, productIds) = await orderRepository.GetCustomerAndProductIdsAsync(ct);
+
+    // var customerIdsList = customerIds.ToList();
+    // var productIdsList = productIds.ToList();
+
+    // var customerIds = await db.Customers
+    //     .Select(c => c.Id)
+    //     .ToListAsync(ct);
     
-    var productIds = await db.Products
-        .Select(p => p.Id)
-        .ToListAsync(ct);
+    // var productIds = await db.Products
+    //     .Select(p => p.Id)
+    //     .ToListAsync(ct);
         
     if(customerIds.Count == 0 || productIds.Count == 0)
     {
@@ -312,10 +336,11 @@ app.MapGet("/products/by-sku/{sku}", (string sku, IFulfillmentService fulfillmen
             productId
         });
     }
-    catch(KeyNotFoundException)
+    catch(UnknownSkuException ex)
     {
         return Results.NotFound(new {
-            error = $"Product not found by sku: {sku}"
+            error = ex.Message,
+            sku = ex.Sku
         });
     }
 

@@ -3,6 +3,7 @@ using AutoSupply.Api.Fulfillment;
 using AutoSupply.Data;
 using AutoSupply.Data.Entities;
 using AutoSupply.Data.Enums;
+using AutoSupply.Api.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
@@ -37,7 +38,7 @@ public class FulfillmentService : IFulfillmentService
         }
 
 
-        throw new KeyNotFoundException($"Unknown SKU: {sku}");
+        throw new UnknownSkuException(sku);
     }
 
 
