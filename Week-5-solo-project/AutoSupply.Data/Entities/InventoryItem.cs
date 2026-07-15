@@ -8,4 +8,6 @@ public class InventoryItem
     public Product Product { get; set; } = default!;
     public int QuantityOnHand { get; set; }
 
+
+    public byte[] RowVersion { get; set; } = default!;
 }
