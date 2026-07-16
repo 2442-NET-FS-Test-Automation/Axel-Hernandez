@@ -10,7 +10,7 @@ using AutoSupply.Api.Fulfillment;
 using AutoSupply.Api.Contracts;
 
 
-
+// Starts asp.net core application builder
 var builder = WebApplication.CreateBuilder(args);
 var conn_string = "Server=localhost,1434;Database=AutoSupplyDb;User Id=sa;Password=TestPass1!;TrustServerCertificate=true";
 
@@ -19,12 +19,20 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/fulfillment-log.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
+// This is special, only for DbContext, not for types
+
+//--- this one, used when injected in endpoints ----
 builder.Services.AddDbContext<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string),
         ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+
+
+//--- this one, used when injected IdbContextfactory ----
 builder.Services.AddDbContextFactory<AutoSupplyDbContext>(options => options.UseSqlServer(conn_string));
 
 
 // /Seed -----------------------------
+// this means, register this TYPE, in Dependency Injection Container
 builder.Services.AddScoped<ISeeder, Seeder>();
 
 // /Fulfillment -----------------------------
@@ -122,8 +130,6 @@ app.MapPost("/orders/burst", async (
 
     var (customerIds, productIds) = await orderRepository.GetCustomerAndProductIdsAsync(ct);
 
-    // var customerIdsList = customerIds.ToList();
-    // var productIdsList = productIds.ToList();
 
     // var customerIds = await db.Customers
     //     .Select(c => c.Id)
