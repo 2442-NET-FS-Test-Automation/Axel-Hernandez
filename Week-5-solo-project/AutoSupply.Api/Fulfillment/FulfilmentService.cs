@@ -184,18 +184,18 @@ public class FulfillmentService : IFulfillmentService
                 //LOG SERILOG PENDING...
                 Log.Error(ex, "Database concurrency error while saving changes");
                 //attempt retry
-                foreach(var entry in ex.Entries)
+                foreach(var entry in ex.Entries) //entries that caused the concurrency error
                 {
-                    var current = await entry.GetDatabaseValuesAsync(ct);
+                    var currentDbValues = await entry.GetDatabaseValuesAsync(ct); //this contins row version fresh values
 
-                    if(current == null) return false;
+                    if(currentDbValues == null) return false;
 
-                    entry.OriginalValues.SetValues(current);
+                    entry.OriginalValues.SetValues(currentDbValues);
 
 
-                    if(entry.Entity is InventoryItem inventory)
+                    if(entry.Entity is InventoryItem inventory) // inventory, is indeed the entry.Entity, we assign this value if conditional statement is true
                     {
-                        int freshValue = current.GetValue<int>(nameof (InventoryItem.QuantityOnHand));
+                        int freshValue = currentDbValues.GetValue<int>(nameof (InventoryItem.QuantityOnHand));
 
                         int desiredAmount = requestedByProductId[inventory.ProductId];
 
